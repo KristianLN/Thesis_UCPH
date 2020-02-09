@@ -41,6 +41,9 @@ Structure:
 * Bibliography
 
 Friedman et al., 2000. Additive Logistic Regression: A Statistical View of Boosting. The Annals of Statistics, Vol. 28, No. 2, 337-407. URL: https://projecteuclid.org/download/pdf_1/euclid.aos/1016218223
+
 Krishnapuram et al., 2005. Sparse Multinomial Logistic Regression: Fast Algorithms and Generalisation Bounds. In IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 27, no. 6, pp. 957-968, June 2005. URL: https://ieeexplore.ieee.org/abstract/document/1424458#deqn2
-Gould and Bonart, 2016. Queue Imbalance as a One-Tick-Ahead Predictor in a Limit Order Book. Market Microstructure and Liquidity, Vol. 2, Issue 2. URL: https://arxiv.org/pdf/1512.03492.pdf
+
+Kercheval and Zhang, 2015. Modelling High-Frequency Limit Order Book Dynamics With Support Vector Machines. Quantitative Finance, Vol. 15, Issue 8: Special Issue on High Frequency Data Modelling in Finance, Pages 1315-1329. URL: https://www.tandfonline.com/doi/full/10.1080/14697688.2015.1032546
+
 Wang, Dr. Jun, 2019. Computational Advertising: With Applications to Online Auctions. University College London Lecture Notes, Multi-Agent Artificial Intelligence. URL: https://drive.google.com/open?id=1mUULla52-MMejOnRVzQUZVchIOSgEhBM
