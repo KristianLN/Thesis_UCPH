@@ -1,4 +1,4 @@
-# <center>Forecasting Price Directions Using High Frequency Stock Data <\center>
+# Forecasting Price Directions Using High Frequency Stock Data
 
 This repository contain all work related to our thesis at University of Copenhagen.
 
@@ -25,7 +25,7 @@ We still have to decide on the exact range and the selection of stocks used for 
 
 ## Data Cleaning
 
-Reference: (Lunde, 2016)[url:https://econ.au.dk/fileadmin/site_files/filer_oekonomi/subsites/creates/Diverse_2016/PhD_High-Frequency/HF_TrQuData_v01.pdf]
+Reference: [(Lunde, 2016)](https://econ.au.dk/fileadmin/site_files/filer_oekonomi/subsites/creates/Diverse_2016/PhD_High-Frequency/HF_TrQuData_v01.pdf)
 
 There are, at least, three other areas we want to explore:
 
@@ -42,7 +42,7 @@ Cross-validation or Bootstrapping? What are the differences and is one better th
 
 Is there an information-wise improvement in considering different aggregation horizons?
 
-Reference: (Brownlees and Gallo, 2006)[url:https://ieeexplore.ieee.org/abstract/document/1380003]
+Reference: [(Brownlees and Gallo, 2006)][https://ieeexplore.ieee.org/abstract/document/1380003]
 
 The state of the research is provided below, by showcasing a history of working plans with deadlines.
 
