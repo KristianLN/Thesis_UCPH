@@ -1,6 +1,6 @@
 # Forecasting Price Directions Using High Frequency Stock Data
 
-This repository contain all work related to our thesis at University of Copenhagen.
+This repository contains all work related to our thesis at University of Copenhagen.
 
 The current outline is as follows:
 
