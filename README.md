@@ -42,7 +42,7 @@ Cross-validation or Bootstrapping? What are the differences and is one better th
 
 Is there an information-wise improvement in considering different aggregation horizons?
 
-Reference: [(Brownlees and Gallo, 2006)][https://ieeexplore.ieee.org/abstract/document/1380003]
+Reference: [(Brownlees and Gallo, 2006)](https://ieeexplore.ieee.org/abstract/document/1380003)
 
 The state of the research is provided below, by showcasing a history of working plans with deadlines.
 
