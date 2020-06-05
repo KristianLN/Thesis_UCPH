@@ -17,23 +17,23 @@ Some of the alternative features we intend to investigate, to uncover the potent
 * Technical features of the whole market, the related sector or similar stocks (The pool of similar stocks could be divided into size buckets, to control for varying information in size as well.)
 * Price derivatives and other price-based features from (Kercheval and Zhang, 2015).
 
-# data
+# Data
 
 Our data is from the TAQ database, which contains high frequency data on all American stocks from 19930101-20200430.
-We still have to decide on the exact range and the selection of stocks used for our analysis. The size of the data is most definitely a challenge, which we aim to address and tackle, to ensure that your research is practically relevant. 
+We still have to decide on the exact range and the selection of stocks used for our analysis. The size of the data is most definitely a challenge, which we aim to address and tackle, to ensure that your research is practically relevant.
 
 There are, at least, three other areas we want to explore:
 
-# Cointegration
+## Cointegration
 
 Can cointegration be used effectively to improve our models?
 Ideally, we want to use cointegration dynamically to improve the trading strategy, through the information on the long and short term relationship but it is unclear exactly how at the moment.
 
-# Fitting Procedure of our Models
+## Fitting Procedure of our Models
 
 Cross-validation or Bootstrapping? What are the differences and is one better than the other?
 
-# Aggregation Horizon
+## Aggregation Horizon
 
 Is there an information-wise improvement in considering different aggregation horizons?
 
