@@ -1,4 +1,5 @@
-# Thesis_UCPH
+# <center>Forecasting Price Directions Using High Frequency Stock Data <\center>
+
 This repository contain all work related to our thesis at University of Copenhagen.
 
 The current outline is as follows:
@@ -22,6 +23,10 @@ Some of the alternative features we intend to investigate, to uncover the potent
 Our data is from the TAQ database, which contains high frequency data on all American stocks from 19930101-20200430.
 We still have to decide on the exact range and the selection of stocks used for our analysis. The size of the data is most definitely a challenge, which we aim to address and tackle, to ensure that your research is practically relevant.
 
+## Data Cleaning
+
+Reference: (Lunde, 2016)[url:https://econ.au.dk/fileadmin/site_files/filer_oekonomi/subsites/creates/Diverse_2016/PhD_High-Frequency/HF_TrQuData_v01.pdf]
+
 There are, at least, three other areas we want to explore:
 
 ## Cointegration
@@ -29,7 +34,7 @@ There are, at least, three other areas we want to explore:
 Can cointegration be used effectively to improve our models?
 Ideally, we want to use cointegration dynamically to improve the trading strategy, through the information on the long and short term relationship but it is unclear exactly how at the moment.
 
-## Fitting Procedure of our Models
+## Fitting Procedures (of the Models)
 
 Cross-validation or Bootstrapping? What are the differences and is one better than the other?
 
@@ -37,7 +42,11 @@ Cross-validation or Bootstrapping? What are the differences and is one better th
 
 Is there an information-wise improvement in considering different aggregation horizons?
 
-A rough working plan are found below (Latest to-do first):
+Reference: (Brownlees and Gallo, 2006)[url:https://ieeexplore.ieee.org/abstract/document/1380003]
+
+The state of the research is provided below, by showcasing a history of working plans with deadlines.
+
+# History of Working Plans (Latest to-do first):
 
 * Data Cleaning – based on the slides of Asger Lunde.
   * Implement dynamic aggregation
