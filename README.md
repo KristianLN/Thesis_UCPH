@@ -46,7 +46,7 @@ Reference: [(Brownlees and Gallo, 2006)](https://ieeexplore.ieee.org/abstract/do
 
 The state of the research is provided below, by showcasing a history of working plans with deadlines.
 
-# History of Working Plans (Latest to-do first):
+# History of Working Plans (Latest first):
 
 * Data Cleaning – based on the slides of Asger Lunde.
   * Implement dynamic aggregation
