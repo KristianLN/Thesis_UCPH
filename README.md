@@ -3,47 +3,51 @@ This repository contain all work related to our thesis at University of Copenhag
 
 The current outline is as follows:
 
-Reference paper: (Kercheval and Zhang, 2015)
+Reference paper: TBD
 
 Goal:
 
-We want to build on the research conducted by (Kercheval and Zhang, 2015), by considering alternative variations of logistic regression and alternative models for the task of predicting the probability of observing a positive price sign in period i+j,P(yi+j=1| Xi ), withj =0,1,5,10 as an example.
-Furthermore, we want to quantify the effect of using bootstrap versus cross-validation in the training phase of the model building process. 
-Lastly, we want to touch on online prediction in the context of price direction prediction using LOB data.
+The overall goal is to evaluate different models ability to predict the future price direction using high frequency price data, on potentially all American stocks.
+An important feature of our research is that it should be practically relevant, by which we measure the degree of relevance by implementing our research as a trading strategy.
+We address the classical pitfalls arising when only considering the basic probabilities of the future price direction going up, down or stay unchanged, and we implement a more advanced framework.
+Our information set, i.e. our features/explanatory variables, consists, for now, of classical technical features based on realized (past) prices. We aim to explore a range of alternative features to improve our models ability to forecast the future price direction, and thereby improve the risk/reward ratio of our trading strategy.
+Some of the alternative features we intend to investigate, to uncover the potential, is:
 
-Summary:
+* Greeks - Between the relevant sector ETF and the stock.
+* Technical features of the whole market, the related sector or similar stocks (The pool of similar stocks could be divided into size buckets, to control for varying information in size as well.)
+* Price derivatives and other price-based features from (Kercheval and Zhang, 2015).
 
-* We want to build on the research conducted by (Kercheval and Zhang, 2015).
-* We want to consider alternative variations of Logistic Regression and alternative models (Random Forest and/or Neural Networks).
-* We want to discuss/quantify the effect of using bootstrap versus cross-validation in training/estimation phase on LOB data and more generally on time series data.
-* We want to consider the use of online prediction in the context of price direction prediction using LOB data.
+# data
 
-Structure:
+Our data is from the TAQ database, which contains high frequency data on all American stocks from 19930101-20200430.
+We still have to decide on the exact range and the selection of stocks used for our analysis. The size of the data is most definitely a challenge, which we aim to address and tackle, to ensure that your research is practically relevant. 
 
-* Introduction
-* Literature Review
-* Data
-  * Market microstructure
-  * LOB’s
-  * The dataset
-    * Descriptive Statistics (e.g. Number of observations, empirical autocorrelation, average number of orders, average number of different signs)
-* Models
-  * Logistic Regression
-    * Linear models (Examples: LASSO, Ridge, Sparse Multinomial (Krishnapuram et al., 2005), Additive LR (LogitBoost) (Friedman et al., 2000))
-    * Nonlinear models (Neural Network)
-  * Random Forest as an alternative.
-  * Bootstrapping vs. Cross-validation for time series data
-  * Online Prediction | (Wang, 2019) and references within.
-* Results
-* Discussion
-* Future Work
-* Conclusion
-* Bibliography
+There are, at least, three other areas we want to explore:
 
-Friedman et al., 2000. Additive Logistic Regression: A Statistical View of Boosting. The Annals of Statistics, Vol. 28, No. 2, 337-407. URL: https://projecteuclid.org/download/pdf_1/euclid.aos/1016218223
+# Cointegration
 
-Krishnapuram et al., 2005. Sparse Multinomial Logistic Regression: Fast Algorithms and Generalisation Bounds. In IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 27, no. 6, pp. 957-968, June 2005. URL: https://ieeexplore.ieee.org/abstract/document/1424458#deqn2
+Can cointegration be used effectively to improve our models?
+Ideally, we want to use cointegration dynamically to improve the trading strategy, through the information on the long and short term relationship but it is unclear exactly how at the moment.
 
-Kercheval and Zhang, 2015. Modelling High-Frequency Limit Order Book Dynamics With Support Vector Machines. Quantitative Finance, Vol. 15, Issue 8: Special Issue on High Frequency Data Modelling in Finance, Pages 1315-1329. URL: https://www.tandfonline.com/doi/full/10.1080/14697688.2015.1032546
+# Fitting Procedure of our Models
 
-Wang, Dr. Jun, 2019. Computational Advertising: With Applications to Online Auctions. University College London Lecture Notes, Multi-Agent Artificial Intelligence. URL: https://drive.google.com/open?id=1mUULla52-MMejOnRVzQUZVchIOSgEhBM
+Cross-validation or Bootstrapping? What are the differences and is one better than the other?
+
+# Aggregation Horizon
+
+Is there an information-wise improvement in considering different aggregation horizons?
+
+A rough working plan are found below (Latest to-do first):
+
+* Data Cleaning – based on the slides of Asger Lunde.
+  * Implement dynamic aggregation
+* Features Engineering + Labels
+  * Implement the basic classical features and labels
+* Implement models
+  * Tensorflow / Scikit
+* Check Sector ETFS (Done)
+  * They are available in our data.
+* Github (Done)
+  * It is running!
+
+Deadline: 15 June of 2020
