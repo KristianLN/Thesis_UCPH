@@ -1,4 +1,4 @@
-# Thesis_UPCH
+# Thesis_UCPH
 This repository contain all work related to our thesis at University of Copenhagen.
 
 The current outline is as follows:
