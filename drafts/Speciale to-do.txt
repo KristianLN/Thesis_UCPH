@@ -1,0 +1,8 @@
+﻿Speciale to-do
+* Data Cleaning – Asger Lunde
+   * Aggregation
+* Features Engineering + Labels
+* Implement models
+   * Tensorflow / Scikit
+* Check Sector ETFS
+* Github
