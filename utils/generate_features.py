@@ -169,7 +169,7 @@ def candleCreateNP_vect_v2(data
 
 
 # Final vectorized function
-def createCandles(data
+def candleCreateNP_vect_v3(data
                     ,step
                     ,verbose=False
                     ,fillHoles=True):
@@ -233,7 +233,7 @@ def createCandles(data
         return OHLC
 
 # Final vectorized function
-def createCandles_test(data
+def candleCreateNP_vect_final(data
                         ,step
                         ,verbose=False
                         ,fillHoles=True):
@@ -295,7 +295,7 @@ def createCandles_test(data
     else:
 
         # return as numpy if preferred
-        return OHLC
+        return OHLC.values
 
 ########### Not tested yet - only copied from CrunchTAQ!!
 def generateFeatures(data
@@ -303,7 +303,10 @@ def generateFeatures(data
                     ,featureWindow=1):
     # The input data is build up as follows:
     # Open, high, low and close.
-
+    dataPD = pd.DataFrame({'open':data.T[0],
+                            'high':data.T[1],
+                            'low':data.T[2],
+                            'close':data.T[3]})
     featuresPD = pd.DataFrame()
 
     for feature in listOfFeatures:
@@ -312,7 +315,7 @@ def generateFeatures(data
         if feature.lower() == 'pastobs':
 
             # Creating column names
-            if isinstance(data.loc[(data.index.get_level_values(0).unique()[0],0)],pd.Series):
+            if isinstance(data[0],np.ndarray):
                 cn = [['open_'+str(i),
                        'high_'+str(i),
                        'low_'+str(i),
@@ -326,7 +329,7 @@ def generateFeatures(data
                 raise ValueError('Im not ready to take on a scalar series.')
 
             # Create a variable to temporary store the new features
-            tempFeatures = np.zeros((data.shape[0]-featureWindow+1,featureWindow*data.shape[1]))
+            tempFeatures = np.zeros((len(data)-featureWindow+1,featureWindow*len(data[0])))
 
             stepper = np.arange(featureWindow,len(tempFeatures)+featureWindow)
 
@@ -334,7 +337,7 @@ def generateFeatures(data
             # Creating the features
             for s in stepper:
 
-                tempFeatures[i] = data.iloc[i:s].values.flatten()
+                tempFeatures[i] = data[i:s].flatten()
 
                 i += 1
 
@@ -345,43 +348,47 @@ def generateFeatures(data
         # Stochastic K
         elif feature.lower() == 'stok':
 
-            tempFeatures= ta.momentum.stoch(data.price['high'],
-                                            data.price['low'],
-                                            data.price['close'])
+            tempFeatures= ta.momentum.stoch(dataPD.high,
+                                            dataPD.low,
+                                            dataPD.close)
+            # The below is implemented as Stochastic D at the moment.
+            # tempFeatures= ta.momentum.stoch_signal(dataPD.high,
+            #                                 dataPD.low,
+            #                                 dataPD.close)
             # Adding the feature
             featuresPD['stok'] = tempFeatures
 
         # Stochastic D
         elif feature.lower() == 'stod':
 
-            tempFeatures= ta.momentum.stoch_signal(data.price['high'],
-                                                   data.price['low'],
-                                                   data.price['close'])
+            tempFeatures= ta.momentum.stoch_signal(dataPD.high,
+                                                   dataPD.low,
+                                                   dataPD.close)
             # Adding the feature
             featuresPD['stod'] = tempFeatures
 
         # Slow Stochastic D
         elif feature.lower() == 'sstod':
 
-            tempFeatures= ta.trend.sma_indicator(ta.momentum.stoch_signal(data.price['high'],
-                                                                          data.price['low'],
-                                                                          data.price['close']))
+            tempFeatures= ta.trend.sma_indicator(ta.momentum.stoch_signal(dataPD.high,
+                                                                          dataPD.low,
+                                                                          dataPD.close))
             # Adding the feature
             featuresPD['sstod'] = tempFeatures
 
         # Williams %R
         elif feature.lower() == 'wilr':
 
-            tempFeatures= ta.momentum.wr(data.price['high'],
-                                         data.price['low'],
-                                         data.price['close'])
+            tempFeatures= ta.momentum.wr(dataPD.high,
+                                         dataPD.low,
+                                         dataPD.close)
             # Adding the feature
             featuresPD['wilr'] = tempFeatures
 
         # Rate Of Change
         elif feature.lower() == 'roc':
 
-            tempFeatures= ta.momentum.roc(data.price['close'])
+            tempFeatures= ta.momentum.roc(dataPD.close)
 
             # Adding the feature
             featuresPD['roc'] = tempFeatures
@@ -389,7 +396,7 @@ def generateFeatures(data
         # Relative Strength Index
         elif feature.lower() == 'rsi':
 
-            tempFeatures= ta.momentum.rsi(data.price['close'])
+            tempFeatures= ta.momentum.rsi(dataPD.close)
 
             # Adding the feature
             featuresPD['rsi'] = tempFeatures
@@ -397,25 +404,25 @@ def generateFeatures(data
         # Average True Range
         elif feature.lower() == 'atr':
 
-            tempFeatures= ta.volatility.average_true_range(data.price['high'],
-                                                           data.price['low'],
-                                                           data.price['close'])
+            tempFeatures= ta.volatility.average_true_range(dataPD.high,
+                                                           dataPD.low,
+                                                           dataPD.close)
             # Adding the feature
             featuresPD['atr'] = tempFeatures
 
         # Commodity Channel Index
         elif feature.lower() == 'cci':
 
-            tempFeatures= ta.trend.cci(data.price['high'],
-                                       data.price['low'],
-                                       data.price['close'])
+            tempFeatures= ta.trend.cci(dataPD.high,
+                                       dataPD.low,
+                                       dataPD.close)
             # Adding the feature
             featuresPD['cci'] = tempFeatures
 
          # Detrended Price Ocillator
         elif feature.lower() == 'dpo':
 
-            tempFeatures= ta.trend.dpo(data.price['close'])
+            tempFeatures= ta.trend.dpo(dataPD.close)
 
             # Adding the feature
             featuresPD['dpo'] = tempFeatures
@@ -423,7 +430,7 @@ def generateFeatures(data
         # Simple Moving Average
         elif feature.lower() == 'sma':
 
-            tempFeatures= ta.trend.sma_indicator(data.price['close'])
+            tempFeatures= ta.trend.sma_indicator(dataPD.close)
 
             # Adding the feature
             featuresPD['sma'] = tempFeatures
@@ -431,7 +438,7 @@ def generateFeatures(data
         # Exponential Moving Average
         elif feature.lower() == 'ema':
 
-            tempFeatures= ta.trend.ema_indicator(data.price['close'])
+            tempFeatures= ta.trend.ema_indicator(dataPD.close)
 
             # Adding the feature
             featuresPD['ema'] = tempFeatures
@@ -439,15 +446,16 @@ def generateFeatures(data
         # Moving Average Convergence Divergence
         elif feature.lower() == 'macd':
 
-            tempFeatures= ta.trend.macd(data.price['close'])
-
+            tempFeatures= ta.trend.macd(dataPD.close)
+            # tempFeatures= ta.trend.macd_diff(dataPD.close)
+            # tempFeatures= ta.trend.macd_signal(dataPD.close)
             # Adding the feature
             featuresPD['macd'] = tempFeatures
 
          # Disparity 5
         elif feature.lower() == 'dis5':
 
-            tempFeatures= (data.price['close']/ta.trend.sma_indicator(data.price['close'],5))*100
+            tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,5))*100
 
             # Adding the feature
             featuresPD['dis5'] = tempFeatures
@@ -455,7 +463,7 @@ def generateFeatures(data
         # Disparity 10
         elif feature.lower() == 'dis10':
 
-            tempFeatures= (data.price['close']/ta.trend.sma_indicator(data.price['close'],10))*100
+            tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,10))*100
 
             # Adding the feature
             featuresPD['dis10'] = tempFeatures
