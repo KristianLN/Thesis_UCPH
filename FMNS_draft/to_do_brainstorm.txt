@@ -1,0 +1,9 @@
+to do thesis:
+- all features should depend on FeatureWindow (get x lags for each feature, not just pastObs)
+- preprocessing: 1) min-max, 2) standardization (std 1), 3) normalization (mean 0, std 1), 4) simple latest-close difference, 5) last-close difference + standardization
+--> maybe two parameters: 1) last-close difference | raw, 2) min-max | std | norm
+- add calendar features (weekday, clock)
+- for CV runs: basic shuffling, basic time-series CV, some bootstrap
+--> which scorer? AUC?
+- any feature selection?
+--> try Marco's approach
