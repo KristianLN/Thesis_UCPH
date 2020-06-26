@@ -1,0 +1,3 @@
+############################################################ Questions to discuss ############################################################
+
+* Is there anything dangerous with generating feature over days? I.e. over the ending of one day and the beginning of a new?
