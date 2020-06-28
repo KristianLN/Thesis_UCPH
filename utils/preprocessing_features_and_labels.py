@@ -10,11 +10,8 @@ import datetime
 import ta
 
 ################################################## Table of Content ##################################################
-# candleCreateNP() : Original candle Function
-# candleCreateNP_vect(): Basic vectorized function
-# candleCreateNP_vect_v2(): Final vectorized function, with possibility to create artificial holes in the data.
-# candleCreateNP_vect_v3(): Final vectorized function
-# generateFeatures(); Generate a wide range of technical features - not tested in this format - only copied from CrunchTAQ
+# extract_labels() : extract labels given classes and group_style (we have only equal: 5 x 20% bins right now)
+# align_features_and_labels(): burn-in features, extract labels (calls extract_labels()) and align indices to features
 
 ######################################################################################################################
 
