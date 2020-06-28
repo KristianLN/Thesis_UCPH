@@ -1,9 +1,18 @@
 to do thesis:
-- all features should depend on FeatureWindow (get x lags for each feature, not just pastObs)
+D - candlesticking should accept smaller bars than 1 min
+D - all features should depend on FeatureWindow (get x lags for each feature, not just pastObs)
+D - Add bollinger bands
 - preprocessing: 1) min-max, 2) standardization (std 1), 3) normalization (mean 0, std 1), 4) simple latest-close difference, 5) last-close difference + standardization
 --> maybe two parameters: 1) last-close difference | raw, 2) min-max | std | norm
-- add calendar features (weekday, clock)
+--> remember preprocessing is trained on train fold and transforming in test fold
+SD --> do proper slicing to remove burn-in before preprocessing
+----> needs more work but done for now
+W - add calendar features (weekday, clock)
 - for CV runs: basic shuffling, basic time-series CV, some bootstrap
 --> which scorer? AUC?
 - any feature selection?
 --> try Marco's approach
+
+
+SD - we might need to postpone the 30 min cutoff until late, as we should use them as bridge between day close bars and 9:30 bars for features
+SD --> candle extraction can now do sample == 'full'. Then we need burn-in to take it into account (continue from previous day's close bars)
