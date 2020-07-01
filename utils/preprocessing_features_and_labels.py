@@ -53,7 +53,7 @@ def align_features_and_labels(candles, prediction_horizon, features, n_feature_l
         burned_in_idx = np.where((np.sum(np.isnan(features.values), axis=1) == 0) == True)[0][0]
 
         # calculate end-point cut-off to match with labels
-        end_point_cut = max(prediction_horizon, n_feature_lags) + 1 #prediction_horizon + (FEATURE_LAGS - 2)
+        end_point_cut = max(prediction_horizon, n_feature_lags + 1)
 
         # slice away the observations used for burn-in (taking off 1 at the end to match with labels [slice off "prediction_horizon"])
         burned_in_features = features.iloc[burned_in_idx : -end_point_cut, :].reset_index(drop=True) # features[burned_in_idx:] latter is sligthly faster but maybe not as precise
