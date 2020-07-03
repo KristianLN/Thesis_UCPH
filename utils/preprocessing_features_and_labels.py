@@ -16,18 +16,18 @@ import ta
 ######################################################################################################################
 
 def extract_labels(data = '', classes = 5, group_style = 'equal'):
-    
+
    # returns = ((data.T[-1][1:]/data.T[-1][0:-1])-1)*100
     returns = ((data[1:, -1] / data[:-1, -1])-1)*100
-    
+
     labels = np.zeros(returns.shape[0])
 
     if group_style == 'equal':
         thresholdsMin = [np.array_split(np.sort(returns),classes)[i].min() for i in np.arange(classes)]
-        thresholdsMax = [np.array_split(np.sort(returns),classes)[i].max() for i in np.arange(classes)]    
+        thresholdsMax = [np.array_split(np.sort(returns),classes)[i].max() for i in np.arange(classes)]
     elif group_style != 'equal':
         raise ValueError(f'group_style {group_style} not implemented')
-    
+
     for i in np.arange(classes):
         if i == 0:
             labels[(returns <= thresholdsMax[i])] = i
@@ -36,14 +36,14 @@ def extract_labels(data = '', classes = 5, group_style = 'equal'):
             labels[(returns >= thresholdsMin[i])] = i
 
         else:
-            labels[(returns >= thresholdsMin[i]) & (returns<=thresholdsMax[i])] = i  
-            
+            labels[(returns >= thresholdsMin[i]) & (returns<=thresholdsMax[i])] = i
+
     return labels, returns, [thresholdsMin, thresholdsMax]
 
 
 def align_features_and_labels(candles, prediction_horizon, features, n_feature_lags, n_classes,
                               safe_burn_in = False, data_sample = 'full'):
-    
+
     if not safe_burn_in:
         assert data_sample == 'full'
         # we assume data_sample is full and that we can continue features from yesterday's values.
@@ -59,14 +59,106 @@ def align_features_and_labels(candles, prediction_horizon, features, n_feature_l
         burned_in_features = features.iloc[burned_in_idx : -end_point_cut, :].reset_index(drop=True) # features[burned_in_idx:] latter is sligthly faster but maybe not as precise
 
         # slice away the burned-in indices from labels
-        labels, _, _ = extract_labels(data = candles[burned_in_idx+n_feature_lags:, :], 
+        labels, _, _ = extract_labels(data = candles[burned_in_idx+n_feature_lags:, :],
                                       classes = n_classes, group_style = 'equal')
-        # labels, returns, thresholds = extract_labels(data = candles[burned_in_idx + n_feature_lags : , :], 
+        # labels, returns, thresholds = extract_labels(data = candles[burned_in_idx + n_feature_lags : , :],
         #                                             classes = n_classes, group_style = 'equal')
 
         # check if there are remaining NaNs are burn-in (means error)
         remaining_nans = np.where(np.isnan(burned_in_features.values))[0].size
         if remaining_nans > 0:
-            raise ValueError('Had NaN in burned_in_features after burn-in')   
-            
+            raise ValueError('Had NaN in burned_in_features after burn-in')
+
     return burned_in_features, labels # call the function as X, y = align_features_and_labels(.) if you like
+
+def preProcessing(ppDict,subBy,verbose=False):
+
+    # Creating empty lists to hold the content of our pre-processing dictonary
+    key = []
+    item = []
+
+    # Extracting the items of the pre-processing dictonary
+    for k,i in ppDict.items():
+        key.append(k)
+        item.append(i)
+
+    # Numping
+    key = np.array(key)
+    item = np.array(item)
+
+    # Creating an empty dataframe to store the pre-processed data.
+    preproX = pd.DataFrame()
+
+    # Pre-processing the data according to the desired ways.
+    for ele in np.unique(item):
+        if verbose:
+            print('Pre-Processing Procedure: ',ele)
+
+        # Return the actual values
+        if ele.lower() == 'act':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the raw feature to the new frame
+            preproX[key[item==ele]] = X[key[item==ele]]
+
+        # Return the actual values demeaned
+        elif ele.lower() == 'actde':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the demeaned features to the new frame
+    #         print(X[key[item==ele]].head())
+    #         print(X[key[item==ele]].mean())
+    #         print((X[key[item==ele]]-X[key[item==ele]].mean()).head())
+            preproX[key[item==ele]] = X[key[item==ele]]-X[key[item==ele]].mean()
+
+        # Return the features quantiale transformed (gaussian)
+        elif ele.lower() == 'quantgau':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            preproX[key[item==ele]] = pd.DataFrame(qtGau.fit_transform(X[key[item==ele]].values))
+
+        # Return the features standardized
+        elif ele.lower() == 'std':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            preproX[key[item==ele]] = pd.DataFrame(scaler.fit_transform(X[key[item==ele]].values))
+
+        # Return the features substracted a certain amount
+        elif ele.lower() == 'sub':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            preproX[key[item==ele]] = X[key[item==ele]]-subBy
+
+        # Return the features power transformed (standardized)
+        elif ele.lower() == 'pow':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            preproX[key[item==ele]] = pd.DataFrame(pt.fit_transform(X[key[item==ele]].values))
+
+        # Return the features min-max-normalised
+        elif ele.lower() == 'minmax':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            preproX[key[item==ele]] = pd.DataFrame(mm_scaler.fit_transform(X[key[item==ele]].values))
+
+        # Return the features norm scale
+        elif ele.lower() == 'norm':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            preproX[key[item==ele]] = pd.DataFrame(norm_scaler.fit_transform(X[key[item==ele]].values))
+
+    return preproX
