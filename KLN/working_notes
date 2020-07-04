@@ -1,0 +1,22 @@
+########## Scaling procedures ##########
+
+Open: Std, Power (Std.), (MinMax)
+High: Std, Power (Std.), (MinMax)
+Low: Std, Power (Std.), (MinMax)
+Close: Std, Power (Std.), (MinMax)
+Stok: Std, Power (Std.), (MinMax), (Norm)
+Stod: Std, Power (Std.), (MinMax), (Norm)
+SStod: Std, Power (Std.), (MinMax), (Norm)
+Wilr: Std, Power (Std.), (MinMax), (Norm)
+ema: Std, Power (Std.), (MinMax)
+sma: Std, Power (Std.), (MinMax)
+Dis5: Substract 100
+Dis10: Substract 100
+Macd_diff: baseline
+Roc: baseline demeaned
+Atr: baseline demeaned
+Rsi: Std., Quantile Transformation (Gaussian), Power (Std.)
+Cci: Quantile Transformation (Gaussian), (Power (Std.))
+Dpo: Quantile Transformation (Gaussian), (Norm)
+Macd: Quantile Transformation (Gaussian)
+Macd_Signal: Quantile Transformation (Gaussian)

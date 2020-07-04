@@ -9,6 +9,24 @@ import copy
 import datetime
 import ta
 
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import Normalizer
+from sklearn.preprocessing import PowerTransformer
+from sklearn.preprocessing import QuantileTransformer
+# Do you wanna see?
+
+# Setting up the Scalers!
+mm_scaler = MinMaxScaler()
+scaler = StandardScaler()
+norm_scaler = Normalizer()
+pt = PowerTransformer()
+ptNst = PowerTransformer(standardize=False)
+qtUni = QuantileTransformer(n_quantiles=100)
+qtGau = QuantileTransformer(n_quantiles=100,output_distribution='normal')
+
+
+
 ################################################## Table of Content ##################################################
 # extract_labels() : extract labels given classes and group_style (we have only equal: 5 x 20% bins right now)
 # align_features_and_labels(): burn-in features, extract labels (calls extract_labels()) and align indices to features
@@ -71,7 +89,7 @@ def align_features_and_labels(candles, prediction_horizon, features, n_feature_l
 
     return burned_in_features, labels # call the function as X, y = align_features_and_labels(.) if you like
 
-def preProcessing(ppDict,subBy,verbose=False):
+def pre_processing(rawData,ppDict,subBy,verbose=False):
 
     # Creating empty lists to hold the content of our pre-processing dictonary
     key = []
@@ -100,7 +118,7 @@ def preProcessing(ppDict,subBy,verbose=False):
                 print('Columns Processed:',key[item==ele],'\n')
 
             # Adding the raw feature to the new frame
-            preproX[key[item==ele]] = X[key[item==ele]]
+            preproX[key[item==ele]] = rawData[key[item==ele]]
 
         # Return the actual values demeaned
         elif ele.lower() == 'actde':
@@ -111,7 +129,7 @@ def preProcessing(ppDict,subBy,verbose=False):
     #         print(X[key[item==ele]].head())
     #         print(X[key[item==ele]].mean())
     #         print((X[key[item==ele]]-X[key[item==ele]].mean()).head())
-            preproX[key[item==ele]] = X[key[item==ele]]-X[key[item==ele]].mean()
+            preproX[key[item==ele]] = rawData[key[item==ele]]-rawData[key[item==ele]].mean()
 
         # Return the features quantiale transformed (gaussian)
         elif ele.lower() == 'quantgau':
@@ -119,7 +137,7 @@ def preProcessing(ppDict,subBy,verbose=False):
                 print('Columns Processed:',key[item==ele],'\n')
 
             # Adding the transformed features to the new frame
-            preproX[key[item==ele]] = pd.DataFrame(qtGau.fit_transform(X[key[item==ele]].values))
+            preproX[key[item==ele]] = pd.DataFrame(qtGau.fit_transform(rawData[key[item==ele]].values))
 
         # Return the features standardized
         elif ele.lower() == 'std':
@@ -127,7 +145,7 @@ def preProcessing(ppDict,subBy,verbose=False):
                 print('Columns Processed:',key[item==ele],'\n')
 
             # Adding the transformed features to the new frame
-            preproX[key[item==ele]] = pd.DataFrame(scaler.fit_transform(X[key[item==ele]].values))
+            preproX[key[item==ele]] = pd.DataFrame(scaler.fit_transform(rawData[key[item==ele]].values))
 
         # Return the features substracted a certain amount
         elif ele.lower() == 'sub':
@@ -135,7 +153,7 @@ def preProcessing(ppDict,subBy,verbose=False):
                 print('Columns Processed:',key[item==ele],'\n')
 
             # Adding the transformed features to the new frame
-            preproX[key[item==ele]] = X[key[item==ele]]-subBy
+            preproX[key[item==ele]] = rawData[key[item==ele]]-subBy
 
         # Return the features power transformed (standardized)
         elif ele.lower() == 'pow':
@@ -143,7 +161,7 @@ def preProcessing(ppDict,subBy,verbose=False):
                 print('Columns Processed:',key[item==ele],'\n')
 
             # Adding the transformed features to the new frame
-            preproX[key[item==ele]] = pd.DataFrame(pt.fit_transform(X[key[item==ele]].values))
+            preproX[key[item==ele]] = pd.DataFrame(pt.fit_transform(rawData[key[item==ele]].values))
 
         # Return the features min-max-normalised
         elif ele.lower() == 'minmax':
@@ -151,7 +169,7 @@ def preProcessing(ppDict,subBy,verbose=False):
                 print('Columns Processed:',key[item==ele],'\n')
 
             # Adding the transformed features to the new frame
-            preproX[key[item==ele]] = pd.DataFrame(mm_scaler.fit_transform(X[key[item==ele]].values))
+            preproX[key[item==ele]] = pd.DataFrame(mm_scaler.fit_transform(rawData[key[item==ele]].values))
 
         # Return the features norm scale
         elif ele.lower() == 'norm':
@@ -159,6 +177,129 @@ def preProcessing(ppDict,subBy,verbose=False):
                 print('Columns Processed:',key[item==ele],'\n')
 
             # Adding the transformed features to the new frame
-            preproX[key[item==ele]] = pd.DataFrame(norm_scaler.fit_transform(X[key[item==ele]].values))
+            preproX[key[item==ele]] = pd.DataFrame(norm_scaler.fit_transform(rawData[key[item==ele]].values))
 
     return preproX
+
+def pre_processing_final(rawData_train,
+                        rawData_test,
+                        ppDict,
+                        subBy,
+                        verbose=False):
+
+    # Creating empty lists to hold the content of our pre-processing dictonary
+    key = []
+    item = []
+
+    # Extracting the items of the pre-processing dictonary
+    for k,i in ppDict.items():
+        key.append(k)
+        item.append(i)
+
+    # Numping
+    key = np.array(key)
+    item = np.array(item)
+
+    # Creating an empty dataframe to store the pre-processed data.
+    pp_train = pd.DataFrame()
+    pp_test = pd.DataFrame()
+
+    # Pre-processing the data according to the desired ways.
+    for ele in np.unique(item):
+        if verbose:
+            print('Pre-Processing Procedure: ',ele)
+
+        # Return the actual values
+        if ele.lower() == 'act':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the raw feature to the new frame
+            # preproX[key[item==ele]] = rawData[key[item==ele]]
+            pp_train[key[item==ele]] = rawData_train[key[item==ele]]
+            pp_test[key[item==ele]] = rawData_test[key[item==ele]]
+
+        # Return the actual values demeaned
+        elif ele.lower() == 'actde':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the demeaned features to the new frame
+    #         print(X[key[item==ele]].head())
+    #         print(X[key[item==ele]].mean())
+    #         print((X[key[item==ele]]-X[key[item==ele]].mean()).head())
+            # preproX[key[item==ele]] = rawData[key[item==ele]]-rawData[key[item==ele]].mean()
+            pp_train[key[item==ele]] = rawData_train[key[item==ele]]-rawData_train[key[item==ele]].mean()
+            pp_test[key[item==ele]] = rawData_test[key[item==ele]]-rawData_train[key[item==ele]].mean()
+
+        # Return the features quantiale transformed (gaussian)
+        elif ele.lower() == 'quantgau':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+
+            # preproX[key[item==ele]] = pd.DataFrame(qtGau.fit_transform(rawData[key[item==ele]].values))
+            # Adding the transformed features to the new frame
+            qtGau.fit(rawData_train[key[item==ele]].values)
+            pp_train[key[item==ele]] = pd.DataFrame(qtGau.transform(rawData_train[key[item==ele]].values))
+            pp_test[key[item==ele]] = pd.DataFrame(qtGau.transform(rawData_test[key[item==ele]].values))
+
+        # Return the features standardized
+        elif ele.lower() == 'std':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            # preproX[key[item==ele]] = pd.DataFrame(scaler.fit_transform(rawData[key[item==ele]].values))
+            scaler.fit(rawData_train[key[item==ele]].values)
+            pp_train[key[item==ele]] = pd.DataFrame(scaler.transform(rawData_train[key[item==ele]].values))
+            pp_test[key[item==ele]] = pd.DataFrame(scaler.transform(rawData_test[key[item==ele]].values))
+
+        # Return the features substracted a certain amount
+        elif ele.lower() == 'sub':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            # preproX[key[item==ele]] = rawData[key[item==ele]]-subBy
+            pp_train[key[item==ele]] = rawData_train[key[item==ele]]-subBy
+            pp_test[key[item==ele]] = rawData_test[key[item==ele]]-subBy
+
+        # Return the features power transformed (standardized)
+        elif ele.lower() == 'pow':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            # preproX[key[item==ele]] = pd.DataFrame(pt.fit_transform(rawData[key[item==ele]].values))
+            pt.fit(rawData_train[key[item==ele]].values)
+            pp_train[key[item==ele]] = pd.DataFrame(pt.transform(rawData_train[key[item==ele]].values))
+            pp_test[key[item==ele]] = pd.DataFrame(pt.transform(rawData_test[key[item==ele]].values))
+
+        # Return the features min-max-normalised
+        elif ele.lower() == 'minmax':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            # preproX[key[item==ele]] = pd.DataFrame(mm_scaler.fit_transform(rawData[key[item==ele]].values))
+            mm_scaler.fit(rawData_train[key[item==ele]].values)
+            pp_train[key[item==ele]] = pd.DataFrame(mm_scaler.transform(rawData_train[key[item==ele]].values))
+            pp_test[key[item==ele]] = pd.DataFrame(mm_scaler.transform(rawData_test[key[item==ele]].values))
+
+        # Return the features norm scale
+        elif ele.lower() == 'norm':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            # preproX[key[item==ele]] = pd.DataFrame(norm_scaler.fit_transform(rawData[key[item==ele]].values))
+            norm_scaler.fit(rawData_train[key[item==ele]].values)
+            pp_train[key[item==ele]] = pd.DataFrame(norm_scaler.transform(rawData_train[key[item==ele]].values))
+            pp_test[key[item==ele]] = pd.DataFrame(norm_scaler.transform(rawData_test[key[item==ele]].values))
+
+    # Rearanging columns before we return it
+    pp_train,pp_test = pp_train[rawData_train.columns],pp_test[rawData_test.columns]
+
+    # Return preprocessed data
+    return pp_train.reset_index(drop=True),pp_test.reset_index(drop=True)
