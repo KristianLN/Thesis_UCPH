@@ -3,3 +3,5 @@
 *.ipynb_checkpoints*
 _drafts
 .ipynb_checkpoints
+secrets
+*secrets*
