@@ -244,6 +244,17 @@ def pre_processing_final(rawData_train,
             pp_train[key[item==ele]] = pd.DataFrame(qtGau.transform(rawData_train[key[item==ele]].values))
             pp_test[key[item==ele]] = pd.DataFrame(qtGau.transform(rawData_test[key[item==ele]].values))
 
+        elif ele.lower() == 'quantuni':
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+
+            # preproX[key[item==ele]] = pd.DataFrame(qtGau.fit_transform(rawData[key[item==ele]].values))
+            # Adding the transformed features to the new frame
+            qtUni.fit(rawData_train[key[item==ele]].values)
+            pp_train[key[item==ele]] = pd.DataFrame(qtUni.transform(rawData_train[key[item==ele]].values))
+            pp_test[key[item==ele]] = pd.DataFrame(qtUni.transform(rawData_test[key[item==ele]].values))
+
         # Return the features standardized
         elif ele.lower() == 'std':
             if verbose:
