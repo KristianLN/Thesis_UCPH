@@ -1,0 +1,13 @@
+########## To-Do #######################
+
+* Forbedre pre-processing funktionen - Done
+* Tilføj Model selection i performance testing
+* Forbedre muligheden for at vælge tickers
+  * market cap
+  * contained in TAQ
+* Læsning:
+  * ESL:
+    * 9.1 - 9.2
+    * 10.1 - 10.6
+    * 15
+* Uploade mere data, og se hvad det fylder/tager af tid.

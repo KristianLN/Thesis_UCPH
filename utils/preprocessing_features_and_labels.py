@@ -89,7 +89,7 @@ def align_features_and_labels(candles, prediction_horizon, features, n_feature_l
 
     return burned_in_features, labels # call the function as X, y = align_features_and_labels(.) if you like
 
-def pre_processing(rawData,ppDict,subBy,verbose=False):
+def pre_processing_initial(rawData,ppDict,subBy,verbose=False):
 
     # Creating empty lists to hold the content of our pre-processing dictonary
     key = []
@@ -181,11 +181,11 @@ def pre_processing(rawData,ppDict,subBy,verbose=False):
 
     return preproX
 
-def pre_processing_final(rawData_train,
-                        rawData_test,
-                        ppDict,
-                        subBy,
-                        verbose=False):
+def pre_processing_extended(rawData_train,
+                            rawData_test,
+                            ppDict,
+                            subBy,
+                            verbose=False):
 
     # Creating empty lists to hold the content of our pre-processing dictonary
     key = []
@@ -308,6 +308,171 @@ def pre_processing_final(rawData_train,
             norm_scaler.fit(rawData_train[key[item==ele]].values)
             pp_train[key[item==ele]] = pd.DataFrame(norm_scaler.transform(rawData_train[key[item==ele]].values))
             pp_test[key[item==ele]] = pd.DataFrame(norm_scaler.transform(rawData_test[key[item==ele]].values))
+
+    # Rearanging columns before we return it
+    pp_train,pp_test = pp_train[rawData_train.columns],pp_test[rawData_test.columns]
+
+    # Return preprocessed data
+    return pp_train.reset_index(drop=True),pp_test.reset_index(drop=True)
+
+def pre_processing(rawData_train,
+                rawData_test,
+                ppDict,
+                subBy,
+                verbose=False):
+
+    # Creating empty lists to hold the content of our pre-processing dictonary
+    key = []
+    item = []
+
+    # Extracting the items of the pre-processing dictonary
+    for k,i in ppDict.items():
+        key.append(k)
+        item.append(i)
+
+    # Numping
+    key = np.array(key)
+    item = np.array(item)
+
+    # Creating an empty dataframe to store the pre-processed data.
+    pp_train = pd.DataFrame()
+    pp_test = pd.DataFrame()
+
+    # Pre-processing the data according to the desired ways.
+    for ele in np.unique(item):
+        if verbose:
+            print('Pre-Processing Procedure: ',ele)
+
+        # Return the actual values
+        if ele.lower() == 'act':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the raw feature to the new frame
+            pp_train[cols] = rawData_train[cols]
+            pp_test[cols] = rawData_test[cols]
+
+        # Return the actual values demeaned
+        elif ele.lower() == 'actde':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the demeaned features to the new frame
+            pp_train[cols] = rawData_train[cols]-rawData_train[cols].mean()
+            pp_test[cols] = rawData_test[cols]-rawData_train[cols].mean()
+
+        # Return the features quantiale transformed (gaussian)
+        elif ele.lower() == 'quantgau':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            qtGau.fit(rawData_train[cols].values)
+            pp_train[cols] = pd.DataFrame(qtGau.transform(rawData_train[cols].values))
+            pp_test[cols] = pd.DataFrame(qtGau.transform(rawData_test[cols].values))
+
+        elif ele.lower() == 'quantuni':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            qtUni.fit(rawData_train[cols].values)
+            pp_train[cols] = pd.DataFrame(qtUni.transform(rawData_train[cols].values))
+            pp_test[cols] = pd.DataFrame(qtUni.transform(rawData_test[cols].values))
+
+        # Return the features standardized
+        elif ele.lower() == 'std':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            scaler.fit(rawData_train[cols].values)
+            pp_train[cols] = pd.DataFrame(scaler.transform(rawData_train[cols].values))
+            pp_test[cols] = pd.DataFrame(scaler.transform(rawData_test[cols].values))
+
+        # Return the features substracted a certain amount
+        elif ele.lower() == 'sub':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            pp_train[cols] = rawData_train[cols]-subBy
+            pp_test[cols] = rawData_test[cols]-subBy
+
+        # Return the features power transformed (standardized)
+        elif ele.lower() == 'pow':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            pt.fit(rawData_train[cols].values)
+            pp_train[cols] = pd.DataFrame(pt.transform(rawData_train[cols].values))
+            pp_test[cols] = pd.DataFrame(pt.transform(rawData_test[cols].values))
+
+        # Return the features min-max-normalised
+        elif ele.lower() == 'minmax':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            mm_scaler.fit(rawData_train[cols].values)
+            pp_train[cols] = pd.DataFrame(mm_scaler.transform(rawData_train[cols].values))
+            pp_test[cols] = pd.DataFrame(mm_scaler.transform(rawData_test[cols].values))
+
+        # Return the features norm scale
+        elif ele.lower() == 'norm':
+
+            # Account for lags and preprocess all lags the same way
+            cols = [[c for c in rawData_train.columns if t in c] for t in key[item==ele]]
+            cols = np.concatenate(cols)
+
+            if verbose:
+                print('Columns Processed:',key[item==ele],'\n')
+
+            # Adding the transformed features to the new frame
+            norm_scaler.fit(rawData_train[cols].values)
+            pp_train[cols] = pd.DataFrame(norm_scaler.transform(rawData_train[cols].values))
+            pp_test[cols] = pd.DataFrame(norm_scaler.transform(rawData_test[cols].values))
 
     # Rearanging columns before we return it
     pp_train,pp_test = pp_train[rawData_train.columns],pp_test[rawData_test.columns]

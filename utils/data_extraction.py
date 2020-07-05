@@ -26,12 +26,13 @@ def formatDate(date,timestamps):
 def load_data(dates, tickers, dataNeeded, path, verbose):
     # Measuring the exraction time
     start = time.time()
-
-    print(os.listdir())
+    if verbose:
+        print(os.listdir())
     #path = 'T:/taqhdf5' #'a:/taqhdf5'
     allFiles = os.listdir(path)
-    print(len(allFiles), allFiles[:5], allFiles[-5:])
-    print(allFiles[-10:])
+    if verbose:
+        print(len(allFiles), allFiles[:5], allFiles[-5:])
+        print(allFiles[-10:])
 
 #     # Provide a list of dates of interest (format: yyyymmdd)
 #     dates = np.array(['2020040' + str(i) if i < 10 else '202004' + str(i) for i in np.arange(1,32)]).astype(int)
@@ -103,7 +104,7 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
                 tempData = raw_data['Trades'][list(np.arange(tickerInfo[1],tickerInfo[1]+tickerInfo[2]))]
 
                 # For first file and first ticker.
-                if (i == 0) & (j == 0):    
+                if (i == 0) & (j == 0):
 
                     tradeData = pd.DataFrame(tempData, columns= tempData.dtype.names)
 
@@ -157,7 +158,7 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
                     # Adding the ticker
                     temp['Ticker'] = ticker
 
-                    # Adding the new data 
+                    # Adding the new data
                     tradeData = pd.concat([tradeData,temp])
 
     if (dataNeeded == 'both') | (dataNeeded == 'quotes'):
@@ -193,7 +194,7 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
                 tempData = raw_data['Quotes'][list(np.arange(tickerInfo[1],tickerInfo[1]+tickerInfo[2]))]
 
                 # For first file and first ticker.
-                if (i == 0) & (j == 0):    
+                if (i == 0) & (j == 0):
 
                     quoteData = pd.DataFrame(tempData, columns= tempData.dtype.names)
                     # We remove all unnecessary variables
@@ -256,17 +257,17 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
                     # Adding the ticker
                     temp['Ticker'] = ticker
 
-                    # Adding the new data 
+                    # Adding the new data
                     quoteData = pd.concat([quoteData,temp])
 
     end = time.time()
 
     if verbose:
         print('The extraction time was %.3f seconds.' % (end-start))
-        
+
     if dataNeeded == 'trades':
         return tradeData
     elif dataNeeded == 'quotes':
-        return quoteData    
+        return quoteData
     elif dataNeeded == 'both':
         return tradeData, quoteData
