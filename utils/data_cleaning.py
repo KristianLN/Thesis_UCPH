@@ -187,7 +187,7 @@ def HFDataCleaning(cleaningProcedures,dataToClean,dataType,p3Exchanges = []):
         # FMNS: Let's consider if these median prices are cheating in relation to OHLC bars
         elif cp == 'q1':
 
-            if datatype == 'quote':
+            if dataType == 'quote':
 
                 # get unique timestamps
                 unique_ts_idx = np.unique(dataToClean.Timestamp, return_index=True)[1]
@@ -212,7 +212,7 @@ def HFDataCleaning(cleaningProcedures,dataToClean,dataType,p3Exchanges = []):
         # Q2. Delete entries for which the spread is negative.
         elif cp == 'q2':
 
-            if datatype == 'quote':
+            if dataType == 'quote':
 
                 dataToClean = dataToClean[dataToClean.ofr - dataToClean.bid >= 0].reset_index(drop=True)
 
@@ -223,7 +223,7 @@ def HFDataCleaning(cleaningProcedures,dataToClean,dataType,p3Exchanges = []):
         # Q3. Delete entries for which the spread is more that 50 times the median spread on that day.
         elif cp == 'q3':
 
-            if datatype == 'quote':
+            if dataType == 'quote':
 
                 # get all spreads across days, groupby Date and take daily median spreads
                 all_spreads = dataToClean[['Date', 'bid', 'ofr']]

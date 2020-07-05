@@ -268,8 +268,12 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
     if dataNeeded == 'trades':
         return tradeData
     elif dataNeeded == 'quotes':
+        quoteData.loc[:,'price'] = (quoteData.bid + quoteData.ofr) / 2
+        quoteData.loc[:,'spread'] = quoteData.ofr - quoteData.bid
         return quoteData
     elif dataNeeded == 'both':
+        quoteData.loc[:,'price'] = (quoteData.bid + quoteData.ofr) / 2
+        quoteData.loc[:,'spread'] = quoteData.ofr - quoteData.bid
         return tradeData, quoteData
 
 def updateStockInfo(verbose):

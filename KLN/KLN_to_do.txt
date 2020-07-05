@@ -1,5 +1,8 @@
 ########## To-Do #######################
+Næste:
+* Fiks Q3 (cleaning procedures)
 
+05-07-2020
 * Forbedre pre-processing funktionen - Done
 * Tilføj Model selection i performance testing
 * Forbedre muligheden for at vælge tickers
