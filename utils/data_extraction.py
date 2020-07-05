@@ -271,3 +271,58 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
         return quoteData
     elif dataNeeded == 'both':
         return tradeData, quoteData
+
+def updateStockInfo(verbose):
+    try:
+        path = 'a:/taqhdf5'  #'a:/taqhdf5'
+        latestFile = os.listdir(path)[-1]
+    except:
+        path = 't:/taqhdf5'  #'a:/taqhdf5'
+        latestFile = os.listdir(path)[-1]
+
+    # Reading the latest file
+    rawData = h5py.File(path+'/'+latestFile,'r')
+
+    # Extract all tickers
+
+    TIC = np.array([ele[0].astype(str).strip() for ele in rawData['TradeIndex']])
+
+    start = time.time()
+
+    ########## Lets extract info on all tickers!
+
+    # Set date
+    date = str(datetime.date.today())
+
+    ### Initialize PD container
+    stockInfo = pd.DataFrame(index=TIC,columns=pd.MultiIndex.from_product([[date],
+                                                                          ['sector','exchange','marketCap']],
+                                                                          names=['date','ticker']))
+    ### Lets track where we are.
+    printingRange = np.arange(1000,len(TIC),1000)
+
+    lsContainer = []
+    for i,ticker in enumerate(TIC):
+
+        if i in printingRange:
+            if verbose:
+                print('%i tickers processed, lap timing: %.3f' % (i,(time.time()-start)))
+
+        # Safeguarding
+        try:
+            tick = yf.Ticker(ticker)
+            lsContainer.append([tick.info['sector'],
+                                tick.info['exchange'],
+                                tick.info['marketCap']])
+        except:
+
+            lsContainer.append([np.nan,
+                                np.nan,
+                                np.nan])
+
+    end = time.time()
+
+    stockInfo.loc[:,date] = lsContainer
+
+    if verbose:
+        print('\nTotal processing time: %.3f'%(end-start))
