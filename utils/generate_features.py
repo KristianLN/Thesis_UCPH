@@ -398,14 +398,16 @@ def candleCreateNP_vect_v5(data
         else:
             return OHLC            
               
-              
-# Final vectorized function (currently v5)
-def candleCreateNP_vect_final(data
+                                    
+            
+# v6 has return_spreads that returns spread based on quotes input data
+def candleCreateNP_vect_v6(data
                         ,step
                         ,verbose=False
                         ,fillHoles=True
                         ,sample='stable'
-                        ,numpied=True):
+                        ,numpied=True
+                        ,return_spreads=False):
 
     # v1-v4:
     #data['hour_min_col'] = data['Hour'] + data['Minute']/60
@@ -441,6 +443,13 @@ def candleCreateNP_vect_final(data
                                 ,'min':'low'
                                 ,'last':'close'})
               
+    if return_spreads:
+        assert 'spread' in data.columns, 'The input data is not quotes data which it must be for return_spread == True'
+        spreads = data.groupby(['Date','time_group'])[['spread']].agg(['first', 'last'])
+        spreads = spreads.rename(columns={'first':'open',
+                                          'last':'close'})    
+        OHLC = pd.concat([OHLC, spreads], axis=1)
+              
     ###Let check if we are missing any values       
     # number of days
     dayz = len(OHLC.index.get_level_values(0).unique())
@@ -454,8 +463,16 @@ def candleCreateNP_vect_final(data
                                    names=['Date','time_group'])
 
         ## Creating the multiIndex-columns
-        mtCol = pd.MultiIndex.from_product([['price'], ['open','high','low','close']])
-
+        if not return_spreads:
+            mtCol = pd.MultiIndex.from_product([['price'], ['open','high','low','close']])
+        else:
+            mtCol = pd.MultiIndex.from_tuples([('price', 'open'),
+                                               ('price', 'high'),
+                                               ('price', 'low'),
+                                               ('price', 'close'),
+                                               ('spread', 'open'),
+                                               ('spread', 'close')])
+        
         ## Creating the table itself
         tempDf = pd.DataFrame(np.nan
                               ,columns=mtCol
@@ -467,15 +484,35 @@ def candleCreateNP_vect_final(data
         # To see that the filling mechanism works:
         if fillHoles:
 
-            # Storing the indices to be filled
-            toBeFilled = tempDf[tempDf.price['close'].isna()].index
+            if not return_spreads:
+                # Storing the indices to be filled
+                toBeFilled = tempDf[tempDf.price['close'].isna()].index
 
-            # Fill out the empty ones!
-            dataToFillIn = tempDf.price['close'].fillna(method='ffill').loc[toBeFilled]
-            tempDf.loc[toBeFilled] = pd.DataFrame({('price','open'): dataToFillIn,
-                                                  ('price','high'): dataToFillIn,
-                                                  ('price','low'): dataToFillIn,
-                                                  ('price','close'): dataToFillIn})
+                # Fill out the empty ones!
+                dataToFillIn = tempDf.price['close'].fillna(method='ffill').loc[toBeFilled]
+                tempDf.loc[toBeFilled] = pd.DataFrame({('price','open'): dataToFillIn,
+                                                      ('price','high'): dataToFillIn,
+                                                      ('price','low'): dataToFillIn,
+                                                      ('price','close'): dataToFillIn})
+
+            else:
+                # Storing the indices to be filled
+                toBeFilled_price = tempDf[tempDf.price['close'].isna()].index 
+                toBeFilled_spread = tempDf[tempDf.spread['close'].isna()].index 
+              
+                # Fill out the empty ones!
+                dataToFillIn_price = tempDf.price['close'].fillna(method='ffill').loc[toBeFilled_price]
+                dataToFillIn_spread = tempDf.spread['close'].fillna(method='ffill').loc[toBeFilled_spread]
+              
+                tempDf.loc[toBeFilled_price, ('price')] = pd.DataFrame({('price','open'): dataToFillIn_price,
+                                                                          ('price','high'): dataToFillIn_price,
+                                                                          ('price','low'): dataToFillIn_price,
+                                                                          ('price','close'): dataToFillIn_price,                                                      
+                                                                          })  
+              
+                tempDf.loc[toBeFilled_spread, ('spread')] = pd.DataFrame({('spread','open'): dataToFillIn_spread,
+                                                                          ('spread','close'): dataToFillIn_spread,  
+                                                                           }) 
 
         # Return the complete data
         if numpied:
@@ -489,7 +526,136 @@ def candleCreateNP_vect_final(data
         if numpied:
             return OHLC.values
         else:
-            return OHLC
+            return OHLC 
+              
+              
+# Final vectorized function (currently v6)
+def candleCreateNP_vect_final(data
+                        ,step
+                        ,verbose=False
+                        ,fillHoles=True
+                        ,sample='stable'
+                        ,numpied=True
+                        ,return_spreads=False):
+
+    # v1-v4:
+    #data['hour_min_col'] = data['Hour'] + data['Minute']/60
+    
+    # v5:
+    # generate hour_min_col to hold floated Timestamp for time binning into candles
+    Timestamp_dt = data['Timestamp'].dt
+    Timestamp_float = Timestamp_dt.hour \
+                      + Timestamp_dt.minute/60 \
+                      + Timestamp_dt.second/(60*60) \
+                      + Timestamp_dt.microsecond/(60*60*10**6)
+    data['hour_min_col'] = Timestamp_float    
+              
+    if verbose:
+        print(f"min and max of new hour_min_col: \
+              {data['hour_min_col'].min()}, {data['hour_min_col'].max()}")
+
+    # setup time_bins to group each timestamp
+    delta = step/60
+              
+    if sample == 'full':
+        time_bins = np.arange(9, 16.5+delta, delta)
+    else:
+        time_bins = np.arange(9.5, 16+delta, delta)
+
+    # put each timestamp into a bucket according to time_bins defined by the step variable
+    data['time_group'] = pd.cut(data['hour_min_col'], bins=time_bins, right=True, labels=False)
+
+    # group by date and time_group, extract price, take it open, max, min, last (open, high, low, close)
+    OHLC = data.groupby(['Date','time_group'])[['price']].agg(['first', 'max', 'min', 'last'])
+    OHLC = OHLC.rename(columns={'first':'open'
+                                ,'max':'high'
+                                ,'min':'low'
+                                ,'last':'close'})
+              
+    if return_spreads:
+        assert 'spread' in data.columns, 'The input data is not quotes data which it must be for return_spread == True'
+        spreads = data.groupby(['Date','time_group'])[['spread']].agg(['first', 'last'])
+        spreads = spreads.rename(columns={'first':'open',
+                                          'last':'close'})    
+        OHLC = pd.concat([OHLC, spreads], axis=1)
+              
+    ###Let check if we are missing any values       
+    # number of days
+    dayz = len(OHLC.index.get_level_values(0).unique())
+              
+    # if 
+    if len(OHLC.index.get_level_values(1))!=((len(time_bins)-1)*dayz):
+
+        ##### Creating our temporary table, with all the indices that is surposed to be in the actual candle-table.
+        ## Creating the multiIndex-index
+        mtInd = pd.MultiIndex.from_product([OHLC.index.get_level_values(0).unique(), np.arange(len(time_bins)-1)],
+                                   names=['Date','time_group'])
+
+        ## Creating the multiIndex-columns
+        if not return_spreads:
+            mtCol = pd.MultiIndex.from_product([['price'], ['open','high','low','close']])
+        else:
+            mtCol = pd.MultiIndex.from_tuples([('price', 'open'),
+                                               ('price', 'high'),
+                                               ('price', 'low'),
+                                               ('price', 'close'),
+                                               ('spread', 'open'),
+                                               ('spread', 'close')])
+        
+        ## Creating the table itself
+        tempDf = pd.DataFrame(np.nan
+                              ,columns=mtCol
+                              ,index=mtInd)
+
+        # Filling the non-empty elements of OHLC into the temp-table
+        tempDf.loc[OHLC.index]=OHLC.copy(deep=True)
+
+        # To see that the filling mechanism works:
+        if fillHoles:
+
+            if not return_spreads:
+                # Storing the indices to be filled
+                toBeFilled = tempDf[tempDf.price['close'].isna()].index
+
+                # Fill out the empty ones!
+                dataToFillIn = tempDf.price['close'].fillna(method='ffill').loc[toBeFilled]
+                tempDf.loc[toBeFilled] = pd.DataFrame({('price','open'): dataToFillIn,
+                                                      ('price','high'): dataToFillIn,
+                                                      ('price','low'): dataToFillIn,
+                                                      ('price','close'): dataToFillIn})
+
+            else:
+                # Storing the indices to be filled
+                toBeFilled_price = tempDf[tempDf.price['close'].isna()].index 
+                toBeFilled_spread = tempDf[tempDf.spread['close'].isna()].index 
+              
+                # Fill out the empty ones!
+                dataToFillIn_price = tempDf.price['close'].fillna(method='ffill').loc[toBeFilled_price]
+                dataToFillIn_spread = tempDf.spread['close'].fillna(method='ffill').loc[toBeFilled_spread]
+              
+                tempDf.loc[toBeFilled_price, ('price')] = pd.DataFrame({('price','open'): dataToFillIn_price,
+                                                                          ('price','high'): dataToFillIn_price,
+                                                                          ('price','low'): dataToFillIn_price,
+                                                                          ('price','close'): dataToFillIn_price,                                                      
+                                                                          })  
+              
+                tempDf.loc[toBeFilled_spread, ('spread')] = pd.DataFrame({('spread','open'): dataToFillIn_spread,
+                                                                          ('spread','close'): dataToFillIn_spread,  
+                                                                           }) 
+
+        # Return the complete data
+        if numpied:
+            return tempDf.values
+        else:
+            return tempDf
+
+    else:
+              
+        # return as numpy if preferred      
+        if numpied:
+            return OHLC.values
+        else:
+            return OHLC               
               
 
 ########### Not tested yet - only copied from CrunchTAQ!!
