@@ -1,0 +1,4 @@
+In candleCreateNP_vect_final():
+	If the first candle in the dataset has no data, the first candlestick has NaNs
+	For replication: Trade data for 'GOOG' on ['20200401'] using sample = 'full'
+
