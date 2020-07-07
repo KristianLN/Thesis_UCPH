@@ -256,12 +256,12 @@ def candleCreateNP_vect_v4(data
                                 ,'max':'high'
                                 ,'min':'low'
                                 ,'last':'close'})
-              
-    ###Let check if we are missing any values       
+
+    ###Let check if we are missing any values
     # number of days
     dayz = len(OHLC.index.get_level_values(0).unique())
-              
-    # if 
+
+    # if
     if len(OHLC.index.get_level_values(1))!=((len(time_bins)-2)*dayz):
 
         ##### Creating our temporary table, with all the indices that is surposed to be in the actual candle-table.
@@ -300,8 +300,8 @@ def candleCreateNP_vect_v4(data
 
         # return as numpy if preferred
         return OHLC.values
-              
-              
+
+
 # v5 vectorized: uses new time_bins to go with fully floated version (hour_min_col) of the Timestamp vector
 # in v5 we subtract only 1 from len(time_bins) "(len(time_bins)-1)"
 # as time_bins now go from 9.5 to 16 (including both 9.5 and 16), only the end-point 16 is excessive and must be removed
@@ -316,7 +316,7 @@ def candleCreateNP_vect_v5(data
 
     # v1-v4:
     #data['hour_min_col'] = data['Hour'] + data['Minute']/60
-    
+
     # v5:
     # generate hour_min_col to hold floated Timestamp for time binning into candles
     Timestamp_dt = data['Timestamp'].dt
@@ -324,15 +324,15 @@ def candleCreateNP_vect_v5(data
                       + Timestamp_dt.minute/60 \
                       + Timestamp_dt.second/(60*60) \
                       + Timestamp_dt.microsecond/(60*60*10**6)
-    data['hour_min_col'] = Timestamp_float    
-              
+    data['hour_min_col'] = Timestamp_float
+
     if verbose:
         print(f"min and max of new hour_min_col: \
               {data['hour_min_col'].min()}, {data['hour_min_col'].max()}")
 
     # setup time_bins to group each timestamp
     delta = step/60
-              
+
     if sample == 'full':
         time_bins = np.arange(9, 16.5+delta, delta)
     else:
@@ -347,12 +347,12 @@ def candleCreateNP_vect_v5(data
                                 ,'max':'high'
                                 ,'min':'low'
                                 ,'last':'close'})
-              
-    ###Let check if we are missing any values       
+
+    ###Let check if we are missing any values
     # number of days
     dayz = len(OHLC.index.get_level_values(0).unique())
-              
-    # if 
+
+    # if
     if len(OHLC.index.get_level_values(1))!=((len(time_bins)-1)*dayz):
 
         ##### Creating our temporary table, with all the indices that is surposed to be in the actual candle-table.
@@ -388,18 +388,18 @@ def candleCreateNP_vect_v5(data
         if numpied:
             return tempDf.values
         else:
-            return tempDf  
+            return tempDf
 
     else:
-              
-        # return as numpy if preferred      
+
+        # return as numpy if preferred
         if numpied:
             return OHLC.values
         else:
-            return OHLC            
-              
-                                    
-            
+            return OHLC
+
+
+
 # v6 has return_spreads that returns spread based on quotes input data
 def candleCreateNP_vect_v6(data
                         ,step
@@ -411,7 +411,7 @@ def candleCreateNP_vect_v6(data
 
     # v1-v4:
     #data['hour_min_col'] = data['Hour'] + data['Minute']/60
-    
+
     # v5:
     # generate hour_min_col to hold floated Timestamp for time binning into candles
     Timestamp_dt = data['Timestamp'].dt
@@ -419,15 +419,15 @@ def candleCreateNP_vect_v6(data
                       + Timestamp_dt.minute/60 \
                       + Timestamp_dt.second/(60*60) \
                       + Timestamp_dt.microsecond/(60*60*10**6)
-    data['hour_min_col'] = Timestamp_float    
-              
+    data['hour_min_col'] = Timestamp_float
+
     if verbose:
         print(f"min and max of new hour_min_col: \
               {data['hour_min_col'].min()}, {data['hour_min_col'].max()}")
 
     # setup time_bins to group each timestamp
     delta = step/60
-              
+
     if sample == 'full':
         time_bins = np.arange(9, 16.5+delta, delta)
     else:
@@ -442,19 +442,19 @@ def candleCreateNP_vect_v6(data
                                 ,'max':'high'
                                 ,'min':'low'
                                 ,'last':'close'})
-              
+
     if return_spreads:
         assert 'spread' in data.columns, 'The input data is not quotes data which it must be for return_spread == True'
         spreads = data.groupby(['Date','time_group'])[['spread']].agg(['first', 'last'])
         spreads = spreads.rename(columns={'first':'open',
-                                          'last':'close'})    
+                                          'last':'close'})
         OHLC = pd.concat([OHLC, spreads], axis=1)
-              
-    ###Let check if we are missing any values       
+
+    ###Let check if we are missing any values
     # number of days
     dayz = len(OHLC.index.get_level_values(0).unique())
-              
-    # if 
+
+    # if
     if len(OHLC.index.get_level_values(1))!=((len(time_bins)-1)*dayz):
 
         ##### Creating our temporary table, with all the indices that is surposed to be in the actual candle-table.
@@ -472,7 +472,7 @@ def candleCreateNP_vect_v6(data
                                                ('price', 'close'),
                                                ('spread', 'open'),
                                                ('spread', 'close')])
-        
+
         ## Creating the table itself
         tempDf = pd.DataFrame(np.nan
                               ,columns=mtCol
@@ -497,22 +497,22 @@ def candleCreateNP_vect_v6(data
 
             else:
                 # Storing the indices to be filled
-                toBeFilled_price = tempDf[tempDf.price['close'].isna()].index 
-                toBeFilled_spread = tempDf[tempDf.spread['close'].isna()].index 
-              
+                toBeFilled_price = tempDf[tempDf.price['close'].isna()].index
+                toBeFilled_spread = tempDf[tempDf.spread['close'].isna()].index
+
                 # Fill out the empty ones!
                 dataToFillIn_price = tempDf.price['close'].fillna(method='ffill').loc[toBeFilled_price]
                 dataToFillIn_spread = tempDf.spread['close'].fillna(method='ffill').loc[toBeFilled_spread]
-              
+
                 tempDf.loc[toBeFilled_price, ('price')] = pd.DataFrame({('price','open'): dataToFillIn_price,
                                                                           ('price','high'): dataToFillIn_price,
                                                                           ('price','low'): dataToFillIn_price,
-                                                                          ('price','close'): dataToFillIn_price,                                                      
-                                                                          })  
-              
+                                                                          ('price','close'): dataToFillIn_price,
+                                                                          })
+
                 tempDf.loc[toBeFilled_spread, ('spread')] = pd.DataFrame({('spread','open'): dataToFillIn_spread,
-                                                                          ('spread','close'): dataToFillIn_spread,  
-                                                                           }) 
+                                                                          ('spread','close'): dataToFillIn_spread,
+                                                                           })
 
         # Return the complete data
         if numpied:
@@ -521,14 +521,14 @@ def candleCreateNP_vect_v6(data
             return tempDf
 
     else:
-              
-        # return as numpy if preferred      
+
+        # return as numpy if preferred
         if numpied:
             return OHLC.values
         else:
-            return OHLC 
-              
-              
+            return OHLC
+
+
 # Final vectorized function (currently v6)
 def candleCreateNP_vect_final(data
                         ,step
@@ -540,7 +540,7 @@ def candleCreateNP_vect_final(data
 
     # v1-v4:
     #data['hour_min_col'] = data['Hour'] + data['Minute']/60
-    
+
     # v5:
     # generate hour_min_col to hold floated Timestamp for time binning into candles
     Timestamp_dt = data['Timestamp'].dt
@@ -548,15 +548,15 @@ def candleCreateNP_vect_final(data
                       + Timestamp_dt.minute/60 \
                       + Timestamp_dt.second/(60*60) \
                       + Timestamp_dt.microsecond/(60*60*10**6)
-    data['hour_min_col'] = Timestamp_float    
-              
+    data['hour_min_col'] = Timestamp_float
+
     if verbose:
         print(f"min and max of new hour_min_col: \
               {data['hour_min_col'].min()}, {data['hour_min_col'].max()}")
 
     # setup time_bins to group each timestamp
     delta = step/60
-              
+
     if sample == 'full':
         time_bins = np.arange(9, 16.5+delta, delta)
     else:
@@ -571,19 +571,19 @@ def candleCreateNP_vect_final(data
                                 ,'max':'high'
                                 ,'min':'low'
                                 ,'last':'close'})
-              
+
     if return_spreads:
         assert 'spread' in data.columns, 'The input data is not quotes data which it must be for return_spread == True'
         spreads = data.groupby(['Date','time_group'])[['spread']].agg(['first', 'last'])
         spreads = spreads.rename(columns={'first':'open',
-                                          'last':'close'})    
+                                          'last':'close'})
         OHLC = pd.concat([OHLC, spreads], axis=1)
-              
-    ###Let check if we are missing any values       
+
+    ###Let check if we are missing any values
     # number of days
     dayz = len(OHLC.index.get_level_values(0).unique())
-              
-    # if 
+
+    # if
     if len(OHLC.index.get_level_values(1))!=((len(time_bins)-1)*dayz):
 
         ##### Creating our temporary table, with all the indices that is surposed to be in the actual candle-table.
@@ -601,7 +601,7 @@ def candleCreateNP_vect_final(data
                                                ('price', 'close'),
                                                ('spread', 'open'),
                                                ('spread', 'close')])
-        
+
         ## Creating the table itself
         tempDf = pd.DataFrame(np.nan
                               ,columns=mtCol
@@ -626,22 +626,22 @@ def candleCreateNP_vect_final(data
 
             else:
                 # Storing the indices to be filled
-                toBeFilled_price = tempDf[tempDf.price['close'].isna()].index 
-                toBeFilled_spread = tempDf[tempDf.spread['close'].isna()].index 
-              
+                toBeFilled_price = tempDf[tempDf.price['close'].isna()].index
+                toBeFilled_spread = tempDf[tempDf.spread['close'].isna()].index
+
                 # Fill out the empty ones!
                 dataToFillIn_price = tempDf.price['close'].fillna(method='ffill').loc[toBeFilled_price]
                 dataToFillIn_spread = tempDf.spread['close'].fillna(method='ffill').loc[toBeFilled_spread]
-              
+
                 tempDf.loc[toBeFilled_price, ('price')] = pd.DataFrame({('price','open'): dataToFillIn_price,
                                                                           ('price','high'): dataToFillIn_price,
                                                                           ('price','low'): dataToFillIn_price,
-                                                                          ('price','close'): dataToFillIn_price,                                                      
-                                                                          })  
-              
+                                                                          ('price','close'): dataToFillIn_price,
+                                                                          })
+
                 tempDf.loc[toBeFilled_spread, ('spread')] = pd.DataFrame({('spread','open'): dataToFillIn_spread,
-                                                                          ('spread','close'): dataToFillIn_spread,  
-                                                                           }) 
+                                                                          ('spread','close'): dataToFillIn_spread,
+                                                                           })
 
         # Return the complete data
         if numpied:
@@ -650,13 +650,13 @@ def candleCreateNP_vect_final(data
             return tempDf
 
     else:
-              
-        # return as numpy if preferred      
+
+        # return as numpy if preferred
         if numpied:
             return OHLC.values
         else:
-            return OHLC               
-              
+            return OHLC
+
 
 ########### Not tested yet - only copied from CrunchTAQ!!
 def generateFeatures(data
@@ -671,7 +671,7 @@ def generateFeatures(data
     dataPD = pd.DataFrame({'open':data[:,0],
                              'high':data[:,1],
                              'low':data[:,2],
-                             'close':data[:,3]})              
+                             'close':data[:,3]})
     featuresPD = pd.DataFrame()
 
     for feature in listOfFeatures:
@@ -834,8 +834,8 @@ def generateFeatures(data
             featuresPD['dis10'] = tempFeatures
 
     return featuresPD
-              
-              
+
+
 def generateFeatures_v2(data
                         ,listOfFeatures=[]
                         ,feature_lags=1):
@@ -844,7 +844,7 @@ def generateFeatures_v2(data
     dataPD = pd.DataFrame({'open':data[:,0],
                              'high':data[:,1],
                              'low':data[:,2],
-                             'close':data[:,3]})              
+                             'close':data[:,3]})
     featuresPD = pd.DataFrame()
 
     for feature in listOfFeatures:
@@ -956,15 +956,15 @@ def generateFeatures_v2(data
 
         # Moving Average Convergence Divergence
         elif feature.lower() == 'macd':
-            
+
             # note: having all 3 causes multicollinearity. Maybe not a problem in ML, let's see :-)
             # macd is the difference between two EMAs
             # macd_signal is an EMA of the above macd line
             # macd_diff is the so-called histogram (just bars really) of the time-wise difference between macd and macd_signal
 
             # Adding the features
-            featuresPD['macd'] = ta.trend.macd(dataPD.close)            
-            featuresPD['macd_diff'] = ta.trend.macd_diff(dataPD.close) 
+            featuresPD['macd'] = ta.trend.macd(dataPD.close)
+            featuresPD['macd_diff'] = ta.trend.macd_diff(dataPD.close)
             featuresPD['macd_signal'] = ta.trend.macd_signal(dataPD.close)
 
          # Disparity 5
@@ -981,53 +981,51 @@ def generateFeatures_v2(data
             tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,10))*100
 
             # Adding the feature
-            featuresPD['dis10'] = tempFeatures     
-            
+            featuresPD['dis10'] = tempFeatures
+
         # Bollinger Bands
         elif feature.lower() == 'bb':
-            
+
             # Define Bollinger Bands function to extract from
             bb_function = ta.volatility.BollingerBands(close=dataPD.close, n=20, ndev=2)
-            
+
             # Adding the features
             featuresPD['bb_mavg'] = bb_function.bollinger_mavg()
             featuresPD['bb_hband'] = bb_function.bollinger_hband()
             featuresPD['bb_lband'] = bb_function.bollinger_lband()
             featuresPD['bb_pband'] = bb_function.bollinger_pband()
             featuresPD['bb_wband'] = bb_function.bollinger_wband()
-         
+
     # if we want any lags:
     if feature_lags > 0:
 
-        # collect names of all raw features (before any lagging) 
+        # collect names of all raw features (before any lagging)
         all_raw_features = featuresPD.columns
-        
+
         # loop through each lag and shift all features at once
         for roll_i in np.arange(feature_lags + 1): # + 1 as we treat feature_lags = 1 as having both lag0 and lag1
-            
+
             # define new column name (feature_name_ + lagX) where X = roll_i is the shifting parameter
             new_col_names = [feature_name + '_lag' + str(roll_i) for feature_name in all_raw_features]
-            
-            # Shift/roll all raw features with the shifting parameter roll_i and save as new columns. 
+
+            # Shift/roll all raw features with the shifting parameter roll_i and save as new columns.
             # The shift parameter must be negative (we want lag0 to be the 'newest'/'latest')
             featuresPD[new_col_names] = featuresPD[all_raw_features].shift( - (feature_lags - roll_i))
-            
+
         # remove all raw features
         featuresPD = featuresPD.loc[:, ~featuresPD.columns.isin(all_raw_features)]
-                
+
     return featuresPD
-              
-              
+
+
 # final is currently _v2
-def generateFeatures_final(data
-                        ,listOfFeatures=[]
-                        ,feature_lags=1):
+def generateFeatures_final(data,listOfFeatures=[],feature_lags=1):
     # The input data is build up as follows:
     # Open, high, low and close.
     dataPD = pd.DataFrame({'open':data[:,0],
                              'high':data[:,1],
                              'low':data[:,2],
-                             'close':data[:,3]})              
+                             'close':data[:,3]})
     featuresPD = pd.DataFrame()
 
     for feature in listOfFeatures:
@@ -1139,15 +1137,15 @@ def generateFeatures_final(data
 
         # Moving Average Convergence Divergence
         elif feature.lower() == 'macd':
-            
+
             # note: having all 3 causes multicollinearity. Maybe not a problem in ML, let's see :-)
             # macd is the difference between two EMAs
             # macd_signal is an EMA of the above macd line
             # macd_diff is the so-called histogram (just bars really) of the time-wise difference between macd and macd_signal
 
             # Adding the features
-            featuresPD['macd'] = ta.trend.macd(dataPD.close)            
-            featuresPD['macd_diff'] = ta.trend.macd_diff(dataPD.close) 
+            featuresPD['macd'] = ta.trend.macd(dataPD.close)
+            featuresPD['macd_diff'] = ta.trend.macd_diff(dataPD.close)
             featuresPD['macd_signal'] = ta.trend.macd_signal(dataPD.close)
 
          # Disparity 5
@@ -1164,38 +1162,38 @@ def generateFeatures_final(data
             tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,10))*100
 
             # Adding the feature
-            featuresPD['dis10'] = tempFeatures     
-            
+            featuresPD['dis10'] = tempFeatures
+
         # Bollinger Bands
         elif feature.lower() == 'bb':
-            
+
             # Define Bollinger Bands function to extract from
             bb_function = ta.volatility.BollingerBands(close=dataPD.close, n=20, ndev=2)
-            
+
             # Adding the features
             featuresPD['bb_mavg'] = bb_function.bollinger_mavg()
             featuresPD['bb_hband'] = bb_function.bollinger_hband()
             featuresPD['bb_lband'] = bb_function.bollinger_lband()
             featuresPD['bb_pband'] = bb_function.bollinger_pband()
             featuresPD['bb_wband'] = bb_function.bollinger_wband()
-        
+
     # if we want any lags:
     if feature_lags > 0:
 
-        # collect names of all raw features (before any lagging) 
+        # collect names of all raw features (before any lagging)
         all_raw_features = featuresPD.columns
-        
+
         # loop through each lag and shift all features at once
         for roll_i in np.arange(feature_lags + 1): # + 1 as we treat feature_lags = 1 as having both lag0 and lag1
-            
+
             # define new column name (feature_name_ + lagX) where X = roll_i is the shifting parameter
             new_col_names = [feature_name + '_lag' + str(roll_i) for feature_name in all_raw_features]
-            
-            # Shift/roll all raw features with the shifting parameter roll_i and save as new columns. 
+
+            # Shift/roll all raw features with the shifting parameter roll_i and save as new columns.
             # The shift parameter must be negative (we want lag0 to be the 'newest'/'latest')
             featuresPD[new_col_names] = featuresPD[all_raw_features].shift( - (feature_lags - roll_i))
-            
+
         # remove all raw features
         featuresPD = featuresPD.loc[:, ~featuresPD.columns.isin(all_raw_features)]
-                
-    return featuresPD 
+
+    return featuresPD
