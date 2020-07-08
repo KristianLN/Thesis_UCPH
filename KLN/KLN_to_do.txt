@@ -1,16 +1,18 @@
 ########## To-Do #######################
 Næste:
 * Fiks Q3 (cleaning procedures)
+* Tilføj TF estimators og test
+
 
 05-07-2020
 * Forbedre pre-processing funktionen - Done
 * Tilføj Model selection i performance testing
-* Forbedre muligheden for at vælge tickers
+* Forbedre muligheden for at vælge tickers - Done
   * market cap
   * contained in TAQ
 * Læsning:
   * ESL:
-    * 9.1 - 9.2
-    * 10.1 - 10.6
+    * 9.1 - 9.2 - Done
+    * 10.1 - 10.6 - Done
     * 15
 * Uploade mere data, og se hvad det fylder/tager af tid.
