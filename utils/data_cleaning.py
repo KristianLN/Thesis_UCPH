@@ -45,6 +45,22 @@ def HFDataCleaning(cleaningProcedures,dataToClean,dataType,p3Exchanges = []):
     # that it cannot be applied when quote data is not available.
     # ? In situations where quote data is not available, Q4 can be applied to the transaction prices in place of T4.
 
+    ## Log
+
+    # p1: Use
+    # P2: Use - Make sure it also applies to quotes - it did apply to quotes! yiiiihaaa
+    # P3: Use (for now)
+
+    # T1: Disregard
+    # T2: See related file
+    # T3: Disregard (because candles are used)
+    # T4: Disregard
+
+    # Q1: Disregard (Because candles are used)
+    # Q2: Use
+    # Q3: Disregard
+    # Q4: Disregard
+
     dataType = dataType.lower().strip()
 
 

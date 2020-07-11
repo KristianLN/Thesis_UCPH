@@ -1,7 +1,15 @@
 ########## To-Do #######################
 Næste:
-* Fiks Q3 (cleaning procedures)
+* Fiks Q3 (cleaning procedures) - Ikke nødvendig for nu
 * Tilføj TF estimators og test
+* Cleaning
+    * Bliv helt klar på cleaning
+    * Plot spread og kig efter outliers
+* Preprocessing
+    * First Difference
+* Feature
+    * Kig på sektor-relateret features (Forskelle mellem individuel aktie og dens sektor etf, tjek prisdynamikker etc.)
+
 
 
 05-07-2020
