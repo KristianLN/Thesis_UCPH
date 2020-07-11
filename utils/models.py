@@ -96,4 +96,31 @@ def performanceTesting(X,Y, cv_folds,seed,ppDict,verbose):
     print('Scores: ',scoreHold)
     print('Average Score: %.3f (%.3f)'% (np.mean(scoreHold),np.std(scoreHold)))
 
-        
+def scoreFunction(testData,predData,scoreToReturn, scoresToPrint = []):
+
+    individualPredictions = pd.DataFrame([pred['probabilities'] for pred in predData])
+    individualClasses = pd.DataFrame([pred['classes'] for pred in predData]).astype(int)
+
+    scoreDict = \
+                {'roc_auc_ovr': roc_auc_score(testData.astype(int),
+                                              individualPredictions,
+                                              multi_class='ovr' # 'ovo'/'ovr'
+                                             ),
+                 'roc_auc_ovo': roc_auc_score(testData.astype(int),
+                                              individualPredictions,
+                                              multi_class='ovo' # 'ovo'/'ovr'
+                                             ),
+                 'f1_score': f1_score(testData.astype(int),
+                                      individualClasses,
+                                      average='macro',
+                                     ),
+                 'log_loss': log_loss(testData.astype(int),
+                                      individualPredictions,
+                                     ),
+                }
+    if len(scoresToPrint) > 0 :
+        # Print the desired scores
+        for score in scoresToPrint:
+            print(score + ': %.5f' % scoreDict[score])
+
+    return round(scoreDict[scoreToReturn],5)

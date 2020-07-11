@@ -73,7 +73,6 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
     if (dataNeeded == 'both') | (dataNeeded == 'trades'):
 
     # Lets start out by extracting the trade data
-
         for i,file in enumerate(trade):
 
             if (verbose) & (i == 0):
@@ -100,7 +99,7 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
                 if (verbose) & (i == 0):
                         print('Ticker Information: ',tickerInfo,'\n')
 
-                # Raw data
+                # Raw data - might be up for optimization
                 tempData = raw_data['Trades'][list(np.arange(tickerInfo[1],tickerInfo[1]+tickerInfo[2]))]
 
                 # For first file and first ticker.
@@ -313,8 +312,8 @@ def updateStockInfo(verbose):
                 print('%i tickers processed, lap timing: %.3f' % (i,(time.time()-start)))
 
         # Safeguarding
+        tick = yf.Ticker(ticker)
         try:
-            tick = yf.Ticker(ticker)
             lsContainer.append([tick.info['sector'],
                                 tick.info['exchange'],
                                 tick.info['marketCap']])
