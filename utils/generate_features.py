@@ -1196,4 +1196,16 @@ def generateFeatures_final(data,listOfFeatures=[],feature_lags=1):
         # remove all raw features
         featuresPD = featuresPD.loc[:, ~featuresPD.columns.isin(all_raw_features)]
 
+        # Adjust price feature
+    if 'pastobs' in listOfFeatures:
+        if feature_lags > 0:
+            priceCols = [[c for c in featuresPD.columns if t in c] for t in ['open','high','low','close']]
+            tempClose = featuresPD.close_lag0.values
+            featuresPD.loc[:,priceCols] = featursPD.loc[:,priceCols] - featuresPD.close_lag0
+            featuresPD.loc[:,'close_lag0'] = tempClose
+        else:
+            tempClose = featuresPD.close.values
+            featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']] - featuresPD.close
+            featuresPD.loc[:,'close'] = tempClose
+
     return featuresPD
