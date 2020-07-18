@@ -1200,6 +1200,7 @@ def generateFeatures_final(data,listOfFeatures=[],feature_lags=1):
     if 'pastobs' in listOfFeatures:
         if feature_lags > 0:
             priceCols = [[c for c in featuresPD.columns if t in c] for t in ['open','high','low','close']]
+            print(priceCols)
             tempClose = featuresPD.close_lag0.values
             featuresPD.loc[:,priceCols] = featursPD.loc[:,priceCols] - featuresPD.close_lag0
             featuresPD.loc[:,'close_lag0'] = tempClose

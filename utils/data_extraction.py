@@ -275,6 +275,184 @@ def load_data(dates, tickers, dataNeeded, path, verbose):
         quoteData.loc[:,'spread'] = quoteData.ofr - quoteData.bid
         return tradeData, quoteData
 
+def load_data_fast(dates, tickers, dataNeeded, path, verbose):
+    # Measuring the exraction time
+    start = time.time()
+
+    allFiles = os.listdir(path)
+
+    # Extracting just the dates of each file
+    allDates = np.array([re.split("[._]",ele)[1] if ("." in ele ) & ("_" in ele) else 0 for ele in allFiles]).astype(int)
+
+    minDate = np.min(dates)
+    maxDate = np.max(dates)
+
+    print('1 Lap time: %.3f' % ((time.time()-start)))
+
+    # Locating what files we need.
+    index = np.where((minDate <= allDates) & (allDates <= maxDate))
+
+    relevantFiles = np.array(allFiles)[index[0]]
+
+    print('2 Lap time: %.3f' % ((time.time()-start)))
+
+    # Separating the files into trade and quote files.
+#     trade = [ele for ele in relevantFiles if 'trade' in ele]
+    quote = [ele for ele in relevantFiles if 'quote' in ele]
+
+    if (dataNeeded == 'both') | (dataNeeded == 'quotes'):
+
+        # Now to the quote data
+        for i,file in enumerate(quote):
+
+#             if (verbose) & (i == 0):
+#                 print('### Quote Data ###\n')
+
+            # Reading one file at a time
+            raw_data = h5py.File(path+'/'+file,'r')
+            dt2 = raw_data['Quotes'].dtype
+            print('3 Lap time: %.3f' % ((time.time()-start)))
+
+
+            # Store the trade indecies
+            QI = raw_data['QuoteIndex']
+
+            print('4 Lap time: %.3f' % ((time.time()-start)))
+#             if (verbose) & (i==0):
+#                 print('The raw H5 quote file contains: ',list(raw_data.keys()),'\n')
+
+            # Extracting just the tickers
+            QIC = np.array([ele[0].astype(str).strip() for ele in QI])
+
+            print('5 Lap time: %.3f' % ((time.time()-start)))
+            pos_start = []
+            pos_range = []
+            # Lets get data on each ticker for the file processed at the moment
+            for j,ticker in enumerate(tickers):
+                print(ticker)
+
+                tickerInfo = QI[QIC==ticker][0]
+                pos_start.append(tickerInfo[1])
+                pos_range.append(tickerInfo[2])
+                print(tickerInfo)
+            print('6 Lap time: %.3f' % ((time.time()-start)))
+
+            # use boolean mask to slice all at once
+            selector = zip(pos_start, pos_range)
+            mask = np.zeros(raw_data['Quotes'].shape[0], dtype=bool)
+            for (pos_start, pos_range) in selector:
+                mask[pos_start : pos_start + pos_range] = True
+            tempData = raw_data['Quotes'][mask]
+            #print(tempData[:5])
+
+            print('7 Lap time: %.3f' % ((time.time()-start)))
+
+            # For first file and first ticker.
+            if (i == 0):
+
+                quoteData = pd.DataFrame(tempData, columns= dt2.names)
+                # We remove all unnecessary variables
+                unnecessaryVariables = ['NationalBBOInd',
+                                        'FinraBBOInd',
+                                        'FinraQuoteIndicator',
+                                        'SequenceNumber',
+                                        'FinraAdfMpidIndicator',
+                                        'QuoteCancelCorrection',
+                                        'SourceQuote',
+                                        'RPI',
+                                        'ShortSaleRestrictionIndicator',
+                                        'LuldBBOIndicator',
+                                        'SIPGeneratedMessageIdent',
+                                        'NationalBBOLuldIndicator',
+                                        'ParticipantTimestamp',
+                                        'FinraTimestamp',
+                                        'FinraQuoteIndicator',
+                                        'SecurityStatusIndicator']
+
+                quoteData = quoteData.drop(columns=unnecessaryVariables)
+
+                print('8 Lap time: %.3f' % ((time.time()-start)))
+
+
+                quoteData.loc[:,'ex'] = strList(quoteData.ex)
+                print('9 Lap time: %.3f' % ((time.time()-start)))
+
+                quoteData.loc[:,'mode'] = strList(quoteData['mode'])
+                print('10 Lap time: %.3f' % ((time.time()-start)))
+
+                # Adding the date of the file to the dataframe.
+                quoteData['Date'] = re.split('[._]',
+                                             file)[1]
+                print('11 Lap time: %.3f' % ((time.time()-start)))
+
+                # Adding a more readable timestamp - TEST IT
+                dates = pd.to_datetime(quoteData.loc[:,'Date'], format='%Y%m%d', errors='ignore')
+                times = pd.to_timedelta(quoteData.loc[:,'utcsec'])
+#                 datetimes  = dates + times
+#                 datetimes
+                quoteData['Timestamp'] = dates + times
+#                 quoteData['Timestamp'] = pd.to_datetime(formatDate(re.split('[._]',
+#                                                                             file)[1],
+#                                                                    quoteData.utcsec))
+                print('12 Lap time: %.3f' % ((time.time()-start)))
+
+#                 quoteData['TSRemainder'] = list(map(lambda x: str(x)[11:],
+#                                                     quoteData.utcsec))
+
+                print('13 Lap time: %.3f' % ((time.time()-start)))
+
+                quoteData['Hour'] = quoteData.Timestamp.dt.hour
+                quoteData['Minute'] = quoteData.Timestamp.dt.minute
+                # Adding the ticker
+
+            else:
+
+                # Storing the data on the following tickers in a temporary variable.
+
+                temp = pd.DataFrame(tempData, columns= d2.names)
+                # Removing all unnecessary variables
+                temp = temp.drop(columns=unnecessaryVariables)
+
+                print('8 Lap time: %.3f' % ((time.time()-start)))
+
+                temp.loc[:,'ex'] = strList(temp.ex)
+
+                print('9 Lap time: %.3f' % ((time.time()-start)))
+
+                temp.loc[:,'mode'] = strList(temp['mode'])
+
+                print('10 Lap time: %.3f' % ((time.time()-start)))
+
+                # Adding the date of the file to the dataframe.
+                temp['Date'] = re.split('[._]',file)[1]
+
+                print('11 Lap time: %.3f' % ((time.time()-start)))
+
+                # Adding a more readable timestamp - TEST IT
+                temp['Timestamp'] = pd.to_datetime(formatDate(re.split('[._]',file)[1],temp.utcsec))
+
+                print('12 Lap time: %.3f' % ((time.time()-start)))
+
+                temp['TSRemainder'] = list(map(lambda x: str(x)[11:], temp.utcsec))
+                temp['Hour'] = temp.Timestamp.dt.hour
+                temp['Minute'] = temp.Timestamp.dt.minute
+
+                # Adding the ticker
+                temp['Ticker'] = ticker
+
+                # Adding the new data
+                quoteData = pd.concat([quoteData,temp])
+
+            # Closing the file after having used it.
+            raw_data.close()
+    end = time.time()
+
+    print('The extraction time was %.3f seconds.' % (end-start))
+
+    quoteData.loc[:,'price'] = (quoteData.bid + quoteData.ofr) / 2
+    quoteData.loc[:,'spread'] = quoteData.ofr - quoteData.bid
+    return quoteData
+
 def updateStockInfo(verbose):
     try:
         path = 'a:/taqhdf5'  #'a:/taqhdf5'
