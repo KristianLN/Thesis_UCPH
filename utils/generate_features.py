@@ -527,9 +527,10 @@ def candleCreateNP_vect_v6(data
             return OHLC.values
         else:
             return OHLC
-              
-              
+
+
 # v7 has return_extended that returns candles for spread, offer, ask based on quotes input data
+# Time bins are fixed to match correct time intervals.
 def candleCreateNP_vect_v7(data
                         ,step
                         ,verbose=False
@@ -558,9 +559,9 @@ def candleCreateNP_vect_v7(data
     delta = step/60
 
     if sample == 'full':
-        time_bins = np.arange(9, 16.5+delta, delta)
-    else:
         time_bins = np.arange(9.5, 16+delta, delta)
+    else:
+        time_bins = np.arange(10, 15.5+delta, delta)
 
     # put each timestamp into a bucket according to time_bins defined by the step variable
     data['time_group'] = pd.cut(data['hour_min_col'], bins=time_bins, right=True, labels=False)
@@ -581,7 +582,7 @@ def candleCreateNP_vect_v7(data
                                             ,'min':'low'
                                             ,'last':'close'})
             OHLC = pd.concat([OHLC, spreads], axis=1)
-              
+
         if 'bidsize' in return_extended:
             assert 'bidsize' in data.columns, 'The input data is not quotes data which it must be for return_extended[bidsize] == True'
             bidsize = data.groupby(['Date','time_group'])[['bidsize']].agg(['first', 'max', 'min', 'last'])
@@ -589,8 +590,8 @@ def candleCreateNP_vect_v7(data
                                             ,'max':'high'
                                             ,'min':'low'
                                             ,'last':'close'})
-            OHLC = pd.concat([OHLC, bidsize], axis=1)              
-              
+            OHLC = pd.concat([OHLC, bidsize], axis=1)
+
         if 'ofrsize' in return_extended:
             assert 'ofrsize' in data.columns, 'The input data is not quotes data which it must be for return_extended[ofrsize] == True'
             ofrsize = data.groupby(['Date','time_group'])[['ofrsize']].agg(['first', 'max', 'min', 'last'])
@@ -598,7 +599,7 @@ def candleCreateNP_vect_v7(data
                                             ,'max':'high'
                                             ,'min':'low'
                                             ,'last':'close'})
-            OHLC = pd.concat([OHLC, ofrsize], axis=1)                 
+            OHLC = pd.concat([OHLC, ofrsize], axis=1)
 
     ###Let check if we are missing any values
     # number of days
@@ -621,7 +622,7 @@ def candleCreateNP_vect_v7(data
             # append each specified variable from return_extended (spread/bidsize/ofrsize)
             [cols_to_include.append(extended_col) for extended_col in return_extended]
             # generate MultiIndex
-            mtCol = pd.MultiIndex.from_product([cols_to_include, ['open','high','low','close']])                           
+            mtCol = pd.MultiIndex.from_product([cols_to_include, ['open','high','low','close']])
 
         ## Creating the table itself
         tempDf = pd.DataFrame(np.nan
@@ -657,7 +658,7 @@ def candleCreateNP_vect_v7(data
                                                                         ('price','low'): dataToFillIn_price,
                                                                         ('price','close'): dataToFillIn_price,
                                                                        })
-                if 'spread' in return_extended:              
+                if 'spread' in return_extended:
                     # Storing the indices to be filled
                     toBeFilled_spread = tempDf[tempDf.spread['close'].isna()].index
 
@@ -669,8 +670,8 @@ def candleCreateNP_vect_v7(data
                                                                               ('spread','low'): dataToFillIn_spread,
                                                                               ('spread','close'): dataToFillIn_spread,
                                                                              })
-              
-                if 'bidsize' in return_extended:              
+
+                if 'bidsize' in return_extended:
                     # Storing the indices to be filled
                     toBeFilled_bidsize = tempDf[tempDf.bidsize['close'].isna()].index
 
@@ -682,8 +683,8 @@ def candleCreateNP_vect_v7(data
                                                                                   ('bidsize','low'): dataToFillIn_bidsize,
                                                                                   ('bidsize','close'): dataToFillIn_bidsize,
                                                                                  })
-              
-                if 'ofrsize' in return_extended:              
+
+                if 'ofrsize' in return_extended:
                     # Storing the indices to be filled
                     toBeFilled_ofrsize = tempDf[tempDf.ofrsize['close'].isna()].index
 
@@ -694,7 +695,7 @@ def candleCreateNP_vect_v7(data
                                                                                   ('ofrsize','high'): dataToFillIn_ofrsize,
                                                                                   ('ofrsize','low'): dataToFillIn_ofrsize,
                                                                                   ('ofrsize','close'): dataToFillIn_ofrsize,
-                                                                                 })           
+                                                                                 })
 
         # Return the complete data
         if numpied:
@@ -708,7 +709,7 @@ def candleCreateNP_vect_v7(data
         if numpied:
             return OHLC.values
         else:
-            return OHLC              
+            return OHLC
 
 
 # Final vectorized function (currently v7)
@@ -740,9 +741,9 @@ def candleCreateNP_vect_final(data
     delta = step/60
 
     if sample == 'full':
-        time_bins = np.arange(9, 16.5+delta, delta)
-    else:
         time_bins = np.arange(9.5, 16+delta, delta)
+    else:
+        time_bins = np.arange(10, 15.5+delta, delta)
 
     # put each timestamp into a bucket according to time_bins defined by the step variable
     data['time_group'] = pd.cut(data['hour_min_col'], bins=time_bins, right=True, labels=False)
@@ -763,7 +764,7 @@ def candleCreateNP_vect_final(data
                                             ,'min':'low'
                                             ,'last':'close'})
             OHLC = pd.concat([OHLC, spreads], axis=1)
-              
+
         if 'bidsize' in return_extended:
             assert 'bidsize' in data.columns, 'The input data is not quotes data which it must be for return_extended[bidsize] == True'
             bidsize = data.groupby(['Date','time_group'])[['bidsize']].agg(['first', 'max', 'min', 'last'])
@@ -771,8 +772,8 @@ def candleCreateNP_vect_final(data
                                             ,'max':'high'
                                             ,'min':'low'
                                             ,'last':'close'})
-            OHLC = pd.concat([OHLC, bidsize], axis=1)              
-              
+            OHLC = pd.concat([OHLC, bidsize], axis=1)
+
         if 'ofrsize' in return_extended:
             assert 'ofrsize' in data.columns, 'The input data is not quotes data which it must be for return_extended[ofrsize] == True'
             ofrsize = data.groupby(['Date','time_group'])[['ofrsize']].agg(['first', 'max', 'min', 'last'])
@@ -780,7 +781,7 @@ def candleCreateNP_vect_final(data
                                             ,'max':'high'
                                             ,'min':'low'
                                             ,'last':'close'})
-            OHLC = pd.concat([OHLC, ofrsize], axis=1)                 
+            OHLC = pd.concat([OHLC, ofrsize], axis=1)
 
     ###Let check if we are missing any values
     # number of days
@@ -803,7 +804,7 @@ def candleCreateNP_vect_final(data
             # append each specified variable from return_extended (spread/bidsize/ofrsize)
             [cols_to_include.append(extended_col) for extended_col in return_extended]
             # generate MultiIndex
-            mtCol = pd.MultiIndex.from_product([cols_to_include, ['open','high','low','close']])                           
+            mtCol = pd.MultiIndex.from_product([cols_to_include, ['open','high','low','close']])
 
         ## Creating the table itself
         tempDf = pd.DataFrame(np.nan
@@ -839,7 +840,7 @@ def candleCreateNP_vect_final(data
                                                                         ('price','low'): dataToFillIn_price,
                                                                         ('price','close'): dataToFillIn_price,
                                                                        })
-                if 'spread' in return_extended:              
+                if 'spread' in return_extended:
                     # Storing the indices to be filled
                     toBeFilled_spread = tempDf[tempDf.spread['close'].isna()].index
 
@@ -851,8 +852,8 @@ def candleCreateNP_vect_final(data
                                                                               ('spread','low'): dataToFillIn_spread,
                                                                               ('spread','close'): dataToFillIn_spread,
                                                                              })
-              
-                if 'bidsize' in return_extended:              
+
+                if 'bidsize' in return_extended:
                     # Storing the indices to be filled
                     toBeFilled_bidsize = tempDf[tempDf.bidsize['close'].isna()].index
 
@@ -864,8 +865,8 @@ def candleCreateNP_vect_final(data
                                                                                   ('bidsize','low'): dataToFillIn_bidsize,
                                                                                   ('bidsize','close'): dataToFillIn_bidsize,
                                                                                  })
-              
-                if 'ofrsize' in return_extended:              
+
+                if 'ofrsize' in return_extended:
                     # Storing the indices to be filled
                     toBeFilled_ofrsize = tempDf[tempDf.ofrsize['close'].isna()].index
 
@@ -876,7 +877,7 @@ def candleCreateNP_vect_final(data
                                                                                   ('ofrsize','high'): dataToFillIn_ofrsize,
                                                                                   ('ofrsize','low'): dataToFillIn_ofrsize,
                                                                                   ('ofrsize','close'): dataToFillIn_ofrsize,
-                                                                                 })           
+                                                                                 })
 
         # Return the complete data
         if numpied:
@@ -1253,14 +1254,25 @@ def generateFeatures_v2(data
     return featuresPD
 
 
-# final is currently _v2
-def generateFeatures_final(data,listOfFeatures=[],feature_lags=1):
+# Includes spread and sizes, and takes a PD dataframe instead of a numpy array.
+def generateFeatures_v3(data,listOfFeatures=[],feature_lags=1):
     # The input data is build up as follows:
     # Open, high, low and close.
-    dataPD = pd.DataFrame({'open':data[:,0],
-                             'high':data[:,1],
-                             'low':data[:,2],
-                             'close':data[:,3]})
+#     dataPD = pd.DataFrame({'open':data[:,0],
+#                              'high':data[:,1],
+#                              'low':data[:,2],
+#                              'close':data[:,3]})
+    dataPD = data.copy(deep=True)
+#     print(dataPD.columns)
+#     print([[j+'_'+i for i in dataPD.columns.get_level_values(1).unique()] for j in dataPD.columns.get_level_values(0).unique()])
+
+    dataPD.columns = np.concatenate([[j+'_'+i for i in dataPD.columns.get_level_values(1).unique()] for j in dataPD.columns.get_level_values(0).unique()])
+
+#     dataPD = dataPD.loc[:,['price_open','price_high','price_low','price_close']].rename(columns=['open','high','low','close'])
+    dataPD = dataPD.rename(columns={'price_open':'open',
+                                    'price_high':'high',
+                                    'price_low':'low',
+                                    'price_close':'close'})
     featuresPD = pd.DataFrame()
 
     for feature in listOfFeatures:
@@ -1271,6 +1283,24 @@ def generateFeatures_final(data,listOfFeatures=[],feature_lags=1):
             featuresPD['high'] = dataPD.high
             featuresPD['low'] = dataPD.low
             featuresPD['close'] = dataPD.close
+
+        elif feature.lower() == 'spread':
+            featuresPD['spread_open'] = dataPD.spread_open
+            featuresPD['spread_high'] = dataPD.spread_high
+            featuresPD['spread_low'] = dataPD.spread_low
+            featuresPD['spread_close'] = dataPD.spread_close
+
+        elif feature.lower() == 'bidsize':
+            featuresPD['bidsize_open'] = dataPD.bidsize_open
+            featuresPD['bidsize_high'] = dataPD.bidsize_high
+            featuresPD['bidsize_low'] = dataPD.bidsize_low
+            featuresPD['bidsize_close'] = dataPD.bidsize_close
+
+        elif feature.lower() == 'ofrsize':
+            featuresPD['ofrsize_open'] = dataPD.ofrsize_open
+            featuresPD['ofrsize_high'] = dataPD.ofrsize_high
+            featuresPD['ofrsize_low'] = dataPD.ofrsize_low
+            featuresPD['ofrsize_close'] = dataPD.ofrsize_close
 
         # Stochastic K
         elif feature.lower() == 'stok':
@@ -1434,14 +1464,263 @@ def generateFeatures_final(data,listOfFeatures=[],feature_lags=1):
         # Adjust price feature
     if 'pastobs' in listOfFeatures:
         if feature_lags > 0:
-            priceCols = [[c for c in featuresPD.columns if t in c] for t in ['open','high','low','close']]
+            priceCols = np.concatenate([[c for c in featuresPD.columns if c.startswith(t,0,len(t))] for t in ['open','high','low','close']])#[0:len(t)] == t
             print(priceCols)
-            tempClose = featuresPD.close_lag0.values
-            featuresPD.loc[:,priceCols] = featursPD.loc[:,priceCols] - featuresPD.close_lag0
+            tempClose = featuresPD.close_lag0.copy(deep=True)
+#             print('\n')
+
+#             featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols] - featuresPD.close_lag0
+            featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
+#             print('\n')
+#             print([featuresPD.loc[:,priceCols] - featuresPD.close_lag0][0:5])
+#             print(tempClose)
             featuresPD.loc[:,'close_lag0'] = tempClose
         else:
-            tempClose = featuresPD.close.values
-            featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']] - featuresPD.close
+#             tempClose = copy.deepcopy(featuresPD.close.values)
+            tempClose = featuresPD.close.copy(deep=True)
+
+#             print(tempClose)
+#             featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']] - featuresPD.close
+            featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
+#             print('\n')
+#             print(featuresPD.loc[:,['open','high','low','close']])
+#             print(featuresPD.close)
+#             print([featuresPD.loc[:,['open','high','low','close']] - featuresPD.close][0:5])
+            featuresPD.loc[:,'close'] = tempClose
+
+    return featuresPD
+# final is currently _v3
+def generateFeatures_final(data,listOfFeatures=[],feature_lags=1):
+    # The input data is build up as follows:
+    # Open, high, low and close.
+#     dataPD = pd.DataFrame({'open':data[:,0],
+#                              'high':data[:,1],
+#                              'low':data[:,2],
+#                              'close':data[:,3]})
+    dataPD = data.copy(deep=True)
+#     print(dataPD.columns)
+#     print([[j+'_'+i for i in dataPD.columns.get_level_values(1).unique()] for j in dataPD.columns.get_level_values(0).unique()])
+
+    dataPD.columns = np.concatenate([[j+'_'+i for i in dataPD.columns.get_level_values(1).unique()] for j in dataPD.columns.get_level_values(0).unique()])
+
+#     dataPD = dataPD.loc[:,['price_open','price_high','price_low','price_close']].rename(columns=['open','high','low','close'])
+    dataPD = dataPD.rename(columns={'price_open':'open',
+                                    'price_high':'high',
+                                    'price_low':'low',
+                                    'price_close':'close'})
+    featuresPD = pd.DataFrame()
+
+    for feature in listOfFeatures:
+
+        # Past observations
+        if feature.lower() == 'pastobs':
+            featuresPD['open'] = dataPD.open
+            featuresPD['high'] = dataPD.high
+            featuresPD['low'] = dataPD.low
+            featuresPD['close'] = dataPD.close
+
+        elif feature.lower() == 'spread':
+            featuresPD['spread_open'] = dataPD.spread_open
+            featuresPD['spread_high'] = dataPD.spread_high
+            featuresPD['spread_low'] = dataPD.spread_low
+            featuresPD['spread_close'] = dataPD.spread_close
+
+        elif feature.lower() == 'bidsize':
+            featuresPD['bidsize_open'] = dataPD.bidsize_open
+            featuresPD['bidsize_high'] = dataPD.bidsize_high
+            featuresPD['bidsize_low'] = dataPD.bidsize_low
+            featuresPD['bidsize_close'] = dataPD.bidsize_close
+
+        elif feature.lower() == 'ofrsize':
+            featuresPD['ofrsize_open'] = dataPD.ofrsize_open
+            featuresPD['ofrsize_high'] = dataPD.ofrsize_high
+            featuresPD['ofrsize_low'] = dataPD.ofrsize_low
+            featuresPD['ofrsize_close'] = dataPD.ofrsize_close
+
+        # Stochastic K
+        elif feature.lower() == 'stok':
+
+            tempFeatures= ta.momentum.stoch(dataPD.high,
+                                            dataPD.low,
+                                            dataPD.close)
+            # The below is implemented as Stochastic D at the moment.
+            # tempFeatures= ta.momentum.stoch_signal(dataPD.high,
+            #                                 dataPD.low,
+            #                                 dataPD.close)
+            # Adding the feature
+            featuresPD['stok'] = tempFeatures
+
+        # Stochastic D
+        elif feature.lower() == 'stod':
+
+            tempFeatures= ta.momentum.stoch_signal(dataPD.high,
+                                                   dataPD.low,
+                                                   dataPD.close)
+            # Adding the feature
+            featuresPD['stod'] = tempFeatures
+
+        # Slow Stochastic D
+        elif feature.lower() == 'sstod':
+
+            tempFeatures= ta.trend.sma_indicator(ta.momentum.stoch_signal(dataPD.high,
+                                                                          dataPD.low,
+                                                                          dataPD.close))
+            # Adding the feature
+            featuresPD['sstod'] = tempFeatures
+
+        # Williams %R
+        elif feature.lower() == 'wilr':
+
+            tempFeatures= ta.momentum.wr(dataPD.high,
+                                         dataPD.low,
+                                         dataPD.close)
+            # Adding the feature
+            featuresPD['wilr'] = tempFeatures
+
+        # Rate Of Change
+        elif feature.lower() == 'roc':
+
+            tempFeatures= ta.momentum.roc(dataPD.close)
+
+            # Adding the feature
+            featuresPD['roc'] = tempFeatures
+
+        # Relative Strength Index
+        elif feature.lower() == 'rsi':
+
+            tempFeatures= ta.momentum.rsi(dataPD.close)
+
+            # Adding the feature
+            featuresPD['rsi'] = tempFeatures
+
+        # Average True Range
+        elif feature.lower() == 'atr':
+
+            tempFeatures= ta.volatility.average_true_range(dataPD.high,
+                                                           dataPD.low,
+                                                           dataPD.close)
+            # Adding the feature
+            featuresPD['atr'] = tempFeatures
+
+        # Commodity Channel Index
+        elif feature.lower() == 'cci':
+
+            tempFeatures= ta.trend.cci(dataPD.high,
+                                       dataPD.low,
+                                       dataPD.close)
+            # Adding the feature
+            featuresPD['cci'] = tempFeatures
+
+         # Detrended Price Ocillator
+        elif feature.lower() == 'dpo':
+
+            tempFeatures= ta.trend.dpo(dataPD.close)
+
+            # Adding the feature
+            featuresPD['dpo'] = tempFeatures
+
+        # Simple Moving Average
+        elif feature.lower() == 'sma':
+
+            tempFeatures= ta.trend.sma_indicator(dataPD.close)
+
+            # Adding the feature
+            featuresPD['sma'] = tempFeatures
+
+        # Exponential Moving Average
+        elif feature.lower() == 'ema':
+
+            tempFeatures= ta.trend.ema_indicator(dataPD.close)
+
+            # Adding the feature
+            featuresPD['ema'] = tempFeatures
+
+        # Moving Average Convergence Divergence
+        elif feature.lower() == 'macd':
+
+            # note: having all 3 causes multicollinearity. Maybe not a problem in ML, let's see :-)
+            # macd is the difference between two EMAs
+            # macd_signal is an EMA of the above macd line
+            # macd_diff is the so-called histogram (just bars really) of the time-wise difference between macd and macd_signal
+
+            # Adding the features
+            featuresPD['macd'] = ta.trend.macd(dataPD.close)
+            featuresPD['macd_diff'] = ta.trend.macd_diff(dataPD.close)
+            featuresPD['macd_signal'] = ta.trend.macd_signal(dataPD.close)
+
+         # Disparity 5
+        elif feature.lower() == 'dis5':
+
+            tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,5))*100
+
+            # Adding the feature
+            featuresPD['dis5'] = tempFeatures
+
+        # Disparity 10
+        elif feature.lower() == 'dis10':
+
+            tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,10))*100
+
+            # Adding the feature
+            featuresPD['dis10'] = tempFeatures
+
+        # Bollinger Bands
+        elif feature.lower() == 'bb':
+
+            # Define Bollinger Bands function to extract from
+            bb_function = ta.volatility.BollingerBands(close=dataPD.close, n=20, ndev=2)
+
+            # Adding the features
+            featuresPD['bb_mavg'] = bb_function.bollinger_mavg()
+            featuresPD['bb_hband'] = bb_function.bollinger_hband()
+            featuresPD['bb_lband'] = bb_function.bollinger_lband()
+            featuresPD['bb_pband'] = bb_function.bollinger_pband()
+            featuresPD['bb_wband'] = bb_function.bollinger_wband()
+
+    # if we want any lags:
+    if feature_lags > 0:
+
+        # collect names of all raw features (before any lagging)
+        all_raw_features = featuresPD.columns
+
+        # loop through each lag and shift all features at once
+        for roll_i in np.arange(feature_lags + 1): # + 1 as we treat feature_lags = 1 as having both lag0 and lag1
+
+            # define new column name (feature_name_ + lagX) where X = roll_i is the shifting parameter
+            new_col_names = [feature_name + '_lag' + str(roll_i) for feature_name in all_raw_features]
+
+            # Shift/roll all raw features with the shifting parameter roll_i and save as new columns.
+            # The shift parameter must be negative (we want lag0 to be the 'newest'/'latest')
+            featuresPD[new_col_names] = featuresPD[all_raw_features].shift( - (feature_lags - roll_i))
+
+        # remove all raw features
+        featuresPD = featuresPD.loc[:, ~featuresPD.columns.isin(all_raw_features)]
+
+        # Adjust price feature
+    if 'pastobs' in listOfFeatures:
+        if feature_lags > 0:
+            priceCols = np.concatenate([[c for c in featuresPD.columns if c.startswith(t,0,len(t))] for t in ['open','high','low','close']])#[0:len(t)] == t
+            print(priceCols)
+            tempClose = featuresPD.close_lag0.copy(deep=True)
+#             print('\n')
+
+#             featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols] - featuresPD.close_lag0
+            featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
+#             print('\n')
+#             print([featuresPD.loc[:,priceCols] - featuresPD.close_lag0][0:5])
+#             print(tempClose)
+            featuresPD.loc[:,'close_lag0'] = tempClose
+        else:
+#             tempClose = copy.deepcopy(featuresPD.close.values)
+            tempClose = featuresPD.close.copy(deep=True)
+
+#             print(tempClose)
+#             featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']] - featuresPD.close
+            featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
+#             print('\n')
+#             print(featuresPD.loc[:,['open','high','low','close']])
+#             print(featuresPD.close)
+#             print([featuresPD.loc[:,['open','high','low','close']] - featuresPD.close][0:5])
             featuresPD.loc[:,'close'] = tempClose
 
     return featuresPD

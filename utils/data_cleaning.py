@@ -97,8 +97,8 @@ def HFDataCleaning(cleaningProcedures,dataToClean,dataType,p3Exchanges = []):
                               + Timestamp_dt.microsecond/(60*60*10**6)
             #dataToClean['Timestamp_float'] = Timestamp_float
 
-            dataToClean = dataToClean[(Timestamp_float>=9.5)&\
-                                      (Timestamp_float<16)]
+            dataToClean = dataToClean[(Timestamp_float>=10)&\
+                                      (Timestamp_float<15.5)]
 
         # if the cleaning procedure in question is p1.
         if cp == 'p1_2':
@@ -117,8 +117,8 @@ def HFDataCleaning(cleaningProcedures,dataToClean,dataType,p3Exchanges = []):
                               + Timestamp_dt.second/(60*60) \
                               + Timestamp_dt.microsecond/(60*60*10**6)
 
-            dataToClean = dataToClean[(Timestamp_float>=9.0)&\
-                                      (Timestamp_float<16.5)]
+            dataToClean = dataToClean[(Timestamp_float>=9.5)&\
+                                      (Timestamp_float<16)]
 
 
         # if the cleaning procedure in question is p2.
