@@ -6,7 +6,7 @@ Næste:
     * Bliv helt klar på cleaning - alle procedure er afstemt, revurder kun hvis trades bliver aktuelt.
     * Plot spread og kig efter outliers - ser fint ud, kør med mere data.
 * Preprocessing
-    * First Difference
+    * First Difference - Done
 * Feature
     * Kig på sektor-relateret features (Forskelle mellem individuel aktie og dens sektor etf, tjek prisdynamikker etc.)
 
