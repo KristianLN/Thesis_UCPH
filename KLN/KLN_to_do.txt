@@ -1,4 +1,19 @@
 ########## To-Do #######################
+
+26-07-2020
+* Pre processing:
+  * Encode kontinuerte features, med henblik på at reducere støjen i de features (Kotsiantis et al., 2006.)
+      * Note: Foreløbige forsøg viser ingen forskel imellem dynaisk og statisk diskretering af features.
+* Evaluation:
+  * Cross validating times series or bootstrapping.
+* Comparing models:
+  * Going beyond the paired t-test for reported quantitative differences, see (Salzberg, 1997).
+      *: Each combination considered in model selection should affect the threshold value of significance.
+          * IDEA: Could we make model selection on bootstrapped datasets, based on our actual datasets? To limit bias and increase the chance generalizable results, and
+                  thereby combining bootstrapping and CV.
+          * Recommended approach in (Salzberg, 1997).
+  * (Shawkat and Smith, 2004) is not really impressive.
+
 Næste:
 * Fiks Q3 (cleaning procedures) - Ikke nødvendig for nu
 * Tilføj TF estimators og test
