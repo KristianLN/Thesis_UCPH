@@ -61,6 +61,9 @@ def extract_labels(data = '', classes = 5, group_style = 'equal'):
 
 def align_features_and_labels(candles, prediction_horizon, features, n_feature_lags, n_classes,
                               safe_burn_in = False, data_sample = 'full'):
+    
+    # extract first 4 columns as the lag0 or raw OHLC prices (used for labelling)
+    price_candles = candles.iloc[:, :4].values
 
     if not safe_burn_in:
         assert data_sample == 'full'
@@ -77,7 +80,7 @@ def align_features_and_labels(candles, prediction_horizon, features, n_feature_l
         burned_in_features = features.iloc[burned_in_idx : -end_point_cut, :].reset_index(drop=True) # features[burned_in_idx:] latter is sligthly faster but maybe not as precise
 
         # slice away the burned-in indices from labels
-        labels, _, _ = extract_labels(data = candles[burned_in_idx+n_feature_lags:, :],
+        labels, _, _ = extract_labels(data = price_candles[burned_in_idx+n_feature_lags:, :],
                                       classes = n_classes, group_style = 'equal')
         # labels, returns, thresholds = extract_labels(data = candles[burned_in_idx + n_feature_lags : , :],
         #                                             classes = n_classes, group_style = 'equal')

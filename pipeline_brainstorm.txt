@@ -1,0 +1,39 @@
+Everything that must be turned or assumed constant:
+
+Preprocessing:
+- Min-max scaling, standardization, normalization, etc.
+- To use first difference on prices or not
+- To stack some of the preprocessing methods
+
+Feature selection/construction:
+- Use importances above median from a RF model
+- Use Marco de Lopez feature selection method (also based on RF)
+- Use all features (and let potential L2 regularization control effects)
+- Determine how many lags to include
+- Any feature engineering?
+
+Model selection:
+- For Logistic: Regularization, ...?
+- For boosted trees: number of trees, max width?, max depth?, ...
+- For NN: number of layers, number of neurons in each, loss function, type of network (FF/conv/LSTM), optimizer + learning rate parameters (and decay), 
+	type of regularization + reg. factor, use dropout or not + dropout factor, use batch-normalization or not, use data-augmentation or not 
+- Decide on performance metric 
+
+CV approach:
+- Regular K-fold with or without shuffle and with or without stratifying folds
+- Time-wise CV, implies no shuffle and no stratify
+- Bootstrap somehow
+
+Different models:
+- 1-2 Logistic Regressions with or without regularization, 1 possibly as much based on Econometrics theory as possible
+- 1 boosted trees model 
+- 1-3 NN (Feed forward, Conv, LSTM)
+
+Label construction:
+- Binary positive/negative returns
+- Binary 50-50 chunks
+- Multi 33-33-33 chunks
+- Multi 20-60-20 chunks
+- Multi 20-20-20-20-20 chunks
+- Multi 10-20-40-20-10 chunks
+- Multi 10-10-60-10-10 chunks
