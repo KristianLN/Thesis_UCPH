@@ -1,4 +1,6 @@
 ########## To-Do #######################
+30-07-2020
+* Læs på Keras tuner, hyperopt, opttuna
 
 26-07-2020
 * Pre processing:
