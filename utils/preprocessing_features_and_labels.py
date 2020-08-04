@@ -91,7 +91,7 @@ def extract_labels_multi(data = None, classes = 5, group_style = 'equal'):
 
 def align_features_and_labels(candles, prediction_horizon, features, n_feature_lags, n_classes,
                               safe_burn_in = False, data_sample = 'full'):
-    
+
     # extract first 4 columns as the lag0 or raw OHLC prices (used for labelling)
     price_candles = candles.iloc[:, :4].values
 
@@ -779,4 +779,8 @@ def pre_processing(rawData_train,
     pp_train,pp_test = pp_train[rawData_train.columns],pp_test[rawData_test.columns]
 
     # Return preprocessed data
+<<<<<<< HEAD
     return pp_train.reset_index(drop=True),pp_test.reset_index(drop=True)
+=======
+    return pp_train.reset_index(drop=True),pp_test.reset_index(drop=True)
+>>>>>>> 5a91f4cae5a3262f2b877067c2a81e7de43a3032

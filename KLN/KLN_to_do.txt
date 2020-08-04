@@ -1,4 +1,13 @@
 ########## To-Do #######################
+30-07-2020
+* Read up on Keras tuner, hyperopt, opttuna
+* cases to check:
+    * "Prices" and spread - No preprocessing
+    * "Prices" and spread - Preprocessing (only "prices")
+    * "Prices", spread and order sizes - No preprocessing
+    * "Prices", spread and order sizes - Preprocessing (Clipping)
+    * "Prices", spread and order sizes - Preprocessing (Clipping + log)
+    * "Prices", spread and order sizes - Preprocessing (Bucketing - one hot encoding)
 
 26-07-2020
 * Pre processing:
