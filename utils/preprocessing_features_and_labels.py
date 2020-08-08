@@ -124,19 +124,19 @@ def align_features_and_labels(candles, prediction_horizon, features, n_feature_l
 
 
 # _multi has multi-ticker support
-def align_features_and_labels_multi(price_candles, 
-                                    all_features, 
-                                    prediction_horizon, 
-                                    n_feature_lags, 
+def align_features_and_labels_multi(price_candles,
+                                    all_features,
+                                    prediction_horizon,
+                                    n_feature_lags,
                                     n_classes,
-                                    safe_burn_in = False, 
+                                    safe_burn_in = False,
                                     data_sample = 'full'):
-    
+
     all_burned_in_features = pd.DataFrame()
     all_labels = pd.DataFrame()
-    
+
     for ticker_iter, ticker_name in enumerate(all_features.ticker.unique()):
-        
+
         ticker_features = all_features[all_features.ticker==ticker_name].copy(deep=True)
         # removing the "ticker" variable from ticker_features as np.isnan() does not like non-numericals
         #ticker_features = ticker_features.iloc[:, ticker_features.columns != 'ticker']
@@ -160,7 +160,7 @@ def align_features_and_labels_multi(price_candles,
 
             # slice away the burned-in indices from labels
             labels = extract_labels_multi(data = ticker_prices[(burned_in_idx+n_feature_lags):],
-                                          classes = n_classes, 
+                                          classes = n_classes,
                                           group_style = 'equal')
             # labels, returns, thresholds = extract_labels(data = candles[burned_in_idx + n_feature_lags : , :],
             #                                             classes = n_classes, group_style = 'equal')
@@ -169,11 +169,11 @@ def align_features_and_labels_multi(price_candles,
             remaining_nans = np.where(np.isnan(burned_in_features.values))[0].size
             if remaining_nans > 0:
                 raise ValueError('Had NaN in burned_in_features after burn-in')
-                
+
         burned_in_features['ticker'] = ticker_name
         all_burned_in_features = pd.concat([all_burned_in_features, burned_in_features])
         all_labels = pd.concat([all_labels, pd.Series(labels)])
-        print(ticker_name + " done")        
+        print(ticker_name + " done")
 
     return all_burned_in_features, all_labels # call the function as X, y = align_features_and_labels(.) if you like
 
@@ -779,8 +779,5 @@ def pre_processing(rawData_train,
     pp_train,pp_test = pp_train[rawData_train.columns],pp_test[rawData_test.columns]
 
     # Return preprocessed data
-<<<<<<< HEAD
+
     return pp_train.reset_index(drop=True),pp_test.reset_index(drop=True)
-=======
-    return pp_train.reset_index(drop=True),pp_test.reset_index(drop=True)
->>>>>>> 5a91f4cae5a3262f2b877067c2a81e7de43a3032

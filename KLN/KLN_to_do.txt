@@ -1,4 +1,14 @@
 ########## To-Do #######################
+08-08-2020
+* Kig på labels fordeling, og hvorfor funktionen ikke returnere 25% i hver klasse.
+* Kig på sektor fordeling af labels.
+* Fix plotting af confusion matrix - done.
+
+03-08-2020
+* Inkluder AUC score
+* Opsæt tabel format
+* Sæt seed på Random Forest and LR
+
 30-07-2020
 * Read up on Keras tuner, hyperopt, opttuna
 * cases to check:
@@ -8,6 +18,8 @@
     * "Prices", spread and order sizes - Preprocessing (Clipping)
     * "Prices", spread and order sizes - Preprocessing (Clipping + log)
     * "Prices", spread and order sizes - Preprocessing (Bucketing - one hot encoding)
+
+
 
 26-07-2020
 * Pre processing:
