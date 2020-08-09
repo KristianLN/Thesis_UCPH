@@ -1,8 +1,12 @@
 ########## To-Do #######################
 08-08-2020
-* Kig på labels fordeling, og hvorfor funktionen ikke returnere 25% i hver klasse.
-* Kig på sektor fordeling af labels.
+* Kig på labels fordeling, og hvorfor funktionen ikke returnere 25% i hver klasse. - Done
+  * Overvej om labels skal laves på baggrund af fordelingen af alle returns, og ikke kun de individuelle returns for den givne aktie.
+* Kig på sektor fordeling af labels. - Done
+  * IYC - Consumer Services er mapped some Consumer Cyclical
+  * IYK - Consumer Goods er mapped some Consumer Defensive
 * Fix plotting af confusion matrix - done.
+
 
 03-08-2020
 * Inkluder AUC score
