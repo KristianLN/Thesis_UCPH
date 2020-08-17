@@ -2149,6 +2149,352 @@ def load_data_and_save(dates,
     return quoteData
 
 
+# 16-08-2020: trying to add exchange-selector
+def load_data_and_save_v2(dates,
+                            tickers,
+                            dataNeeded,
+                            path,
+                            verbose,
+                            extract_candles = False,
+                            aggHorizon = 1,
+                            extra_features_from_quotes = None,
+                            data_sample = 'full',
+                            exchanges = ['q','t'],
+                            save_output = False,
+                            largest_exchange = False):
+
+    # Measuring the exraction time
+    start = time.time()
+
+    allFiles = os.listdir(path)
+
+    if verbose:
+        print(len(allFiles), allFiles[:5], allFiles[-5:])
+        print(allFiles[-10:])
+
+    # Extracting just the dates of each file
+    allDates = np.array([re.split("[._]",ele)[1] if ("." in ele ) & ("_" in ele) else 0 for ele in allFiles]).astype(int)
+
+    minDate = np.min(dates)
+    maxDate = np.max(dates)
+
+    if verbose:
+        print('##### Date range #####\n\nDate, Min: %i\nDate, Max: %i\n'%(minDate,maxDate))
+        print('\n1 Lap time: %.3f\n' % ((time.time()-start)))
+
+    # Locating what files we need.
+    index = np.where((minDate <= allDates) & (allDates <= maxDate))
+
+    relevantFiles = np.array(allFiles)[index[0]]
+
+    # Separating the files into trade and quote files.
+    trade = [ele for ele in relevantFiles if 'trade' in ele]
+    quote = [ele for ele in relevantFiles if 'quote' in ele]
+
+    if verbose:
+        print('##### Data Extraction begins #####\n')
+
+        if dataNeeded.lower() == 'both':
+            print('Both trade and quote data is being extracted..\n')
+        else:
+            print('%s data is being extracted..\n' % dataNeeded[0:5])
+
+        print('\n2 Lap time: %.3f\n' % ((time.time()-start)))
+
+    if (dataNeeded == 'both') | (dataNeeded == 'quotes'):
+
+        # Now to the quote data
+        for i,file in enumerate(quote):
+
+            if (verbose) & (i == 0):
+                print('### Quote Data ###\n')
+
+            # Reading one file at a time
+            raw_data = h5py.File(path+'/'+file,'r')
+            dt2 = raw_data['Quotes'].dtype
+            if verbose:
+                print('3 Lap time: %.3f' % ((time.time()-start)))
+
+
+            # Store the trade indecies
+            QI = raw_data['QuoteIndex']
+
+            if verbose:
+                print('4 Lap time: %.3f' % ((time.time()-start)))
+            if (verbose) & (i==0):
+                print('The raw H5 quote file contains: ',list(raw_data.keys()),'\n')
+
+            # Extracting just the tickers
+            QIC = np.array([ele[0].astype(str).strip() for ele in QI])
+
+            if verbose:
+                print('5 Lap time: %.3f' % ((time.time()-start)))
+
+            pos_start = []
+            pos_range = []
+            # Lets get data on each ticker for the file processed at the moment
+            for j,ticker in enumerate(tickers):
+
+                tickerInfo = QI[QIC==ticker][0]
+                pos_start.append(tickerInfo[1])
+                pos_range.append(tickerInfo[2])
+            # print(pos_range)
+            if verbose:
+                print('6 Lap time: %.3f' % ((time.time()-start)))
+
+            # use boolean mask to slice all at once
+            selector = zip(pos_start, pos_range)
+            mask = np.zeros(raw_data['Quotes'].shape[0], dtype=bool)
+            # print(selector)
+            for t,(pos_s, pos_r) in zip(tickers,selector):
+                mask[pos_s : pos_s + pos_r] = True
+
+            # tempData = raw_data['Quotes'][mask]
+
+            if verbose:
+                print('7 Lap time: %.3f' % ((time.time()-start)))
+
+            # For first file and first ticker.
+            # if (i == 0):
+
+            # quoteData = pd.DataFrame(tempData, columns= dt2.names)
+            quoteData = pd.DataFrame(raw_data['Quotes'][mask], columns= dt2.names)
+            # We remove all unnecessary variables
+            unnecessaryVariables = ['NationalBBOInd',
+                                    'FinraBBOInd',
+                                    'FinraQuoteIndicator',
+                                    'SequenceNumber',
+                                    'FinraAdfMpidIndicator',
+                                    'QuoteCancelCorrection',
+                                    'SourceQuote',
+                                    'RPI',
+                                    'ShortSaleRestrictionIndicator',
+                                    'LuldBBOIndicator',
+                                    'SIPGeneratedMessageIdent',
+                                    'NationalBBOLuldIndicator',
+                                    'ParticipantTimestamp',
+                                    'FinraTimestamp',
+                                    'FinraQuoteIndicator',
+                                    'SecurityStatusIndicator']
+
+            quoteData = quoteData.drop(columns=unnecessaryVariables)
+
+            if verbose:
+                print('8 Lap time: %.3f' % ((time.time()-start)))
+
+
+            quoteData.loc[:,'ex'] = strList(quoteData.ex)
+
+            if verbose:
+                print('9 Lap time: %.3f' % ((time.time()-start)))
+
+            quoteData.loc[:,'mode'] = strList(quoteData['mode'])
+
+            if verbose:
+                print('10 Lap time: %.3f' % ((time.time()-start)))
+
+            # Adding the date of the file to the dataframe.
+            quoteData['Date'] = re.split('[._]',
+                                         file)[1]
+            if verbose:
+                print('11 Lap time: %.3f' % ((time.time()-start)))
+
+            # Adding a more readable timestamp
+            dates = pd.to_datetime(quoteData.loc[:,'Date'], format='%Y%m%d', errors='ignore')
+            times = pd.to_timedelta(quoteData.loc[:,'utcsec'])
+            quoteData['Timestamp'] = dates + times
+
+            if verbose:
+                print('12 Lap time: %.3f' % ((time.time()-start)))
+
+            l = 0
+            # print(pos_range)
+            for j,pa in enumerate(pos_range):
+                if j == 0:
+                    quoteData['Ticker'] = np.nan
+                    quoteData.loc[int(l):int(l+pa),'Ticker'] = tickers[j]
+                else:
+                    quoteData.loc[int(l):int(l+pa),'Ticker'] = tickers[j]
+
+                l += pa
+            # print(pos_range)
+            # else:
+            #
+            #     # Storing the data on the following tickers in a temporary variable.
+            #
+            #     temp = pd.DataFrame(tempData, columns= dt2.names)
+            #     # Removing all unnecessary variables
+            #     temp = temp.drop(columns=unnecessaryVariables)
+            #
+            #     if verbose:
+            #         print('8 Lap time: %.3f' % ((time.time()-start)))
+            #
+            #     temp.loc[:,'ex'] = strList(temp.ex)
+            #
+            #     if verbose:
+            #         print('9 Lap time: %.3f' % ((time.time()-start)))
+            #
+            #     temp.loc[:,'mode'] = strList(temp['mode'])
+            #
+            #     if verbose:
+            #         print('10 Lap time: %.3f' % ((time.time()-start)))
+            #
+            #     # Adding the date of the file to the dataframe.
+            #     temp['Date'] = re.split('[._]',file)[1]
+            #
+            #     if verbose:
+            #         print('11 Lap time: %.3f' % ((time.time()-start)))
+            #
+            #     # Adding a more readable timestamp - TEST IT
+            #     dates = pd.to_datetime(temp.loc[:,'Date'], format='%Y%m%d', errors='ignore')
+            #     times = pd.to_timedelta(temp.loc[:,'utcsec'])
+            #     temp['Timestamp'] = dates + times
+            #
+            #
+            #     if verbose:
+            #         print('12 Lap time: %.3f' % ((time.time()-start)))
+            #
+            #     l = 0
+            #     for j,pa in enumerate(pos_range):
+            #         temp.loc[int(l):int(l+pa),'Ticker'] = tickers[j]
+            #
+            #         l += pa
+            #
+            #     # Adding the new data
+            #     # quoteData = pd.concat([quoteData,temp])
+            #     # We cannot append like this with many tickers, too much data
+            #     quoteData = temp
+
+            # Closing the file after having used it.
+            raw_data.close()
+
+
+            if save_output:
+
+                # quoteData = quoteData.reset_index(drop=True)
+                quoteData.loc[:,'price'] = (quoteData.bid + quoteData.ofr) / 2
+                quoteData.loc[:,'spread'] = quoteData.ofr - quoteData.bid
+                # return quoteData
+
+                ## Cleaning the data
+                if data_sample == 'stable':
+                    # P1 is used for keeping data within [10, 15.5]
+                    cleanedData = HFDataCleaning(['P1','p2','t1','p3'],quoteData,'quote',exchanges)
+                elif data_sample == 'full':
+                    # P1_2 is used for keeping data within [9.5, 16]
+                    cleanedData = HFDataCleaning(['P1_2','p2', 'q2', 'p3'],quoteData,'quote',exchanges)
+
+                # return cleanedData
+
+                ## Creating candles
+                if type(aggHorizon) == list:
+                    # assert save_output == False
+                    for step in aggHorizon:
+                        for ticker_i in tickers:
+                            
+                            # select largest exchange
+                            tmp_data = cleanedData.loc[cleanedData['Ticker'] == ticker_i, :].copy()
+                            ex_sizes = tmp_data.groupby('ex').size()
+                            print(f"Step: {step} -- Ticker: {ticker_i} -- Exchange sizes are: {ex_sizes}")
+                            
+                            max_ex = ex_sizes.idxmax()
+                            tmp_data = tmp_data[tmp_data.ex == max_ex]
+                            
+                            with open('kalkun.txt', 'a+') as file:
+                                file.write(f"\n|\n{ticker_i}\n")
+                                file.write(f"{step}\n")
+                                file.write(str(ex_sizes))
+                            
+                            candles = candleCreateNP_vect_final(data = tmp_data,
+                                                                step = step,
+                                                                verbose = False,
+                                                                fillHoles = True,
+                                                                sample = data_sample,
+                                                                numpied = False,
+                                                                return_extended = extra_features_from_quotes)
+
+                            candles['Ticker'] = ticker_i
+
+
+
+                            # with open('aggregateTAQ_' + str(int(step*60)) + 'sec.csv', 'a+') as f:
+                            #     candles.to_csv(f, header=False)
+                            candles.to_csv('aggregateTAQ_' + str(int(step*60)) + 'sec.csv', mode='a', header=False)
+                            # return candles
+
+                else:
+                    #print(1)
+                    #print(cleanedData.loc[cleanedData['Ticker'] == 'GOOG', :].copy().columns)
+                    for ticker_i in tickers:
+                        
+                        # select largest exchange
+                        tmp_data = cleanedData.loc[cleanedData['Ticker'] == ticker_i, :].copy()
+                        ex_sizes = tmp_data.groupby('ex').size()
+                        print(f"Exchange sizes are: {ex_sizes}")
+
+                        max_ex = ex_sizes.idxmax()
+                        tmp_data = tmp_data[tmp_data.ex == max_ex]                        
+                        
+                        candles = candleCreateNP_vect_final(data = tmp_data, 
+                                                            step = aggHorizon,
+                                                            verbose = False,
+                                                            fillHoles = True,
+                                                            sample = data_sample,
+                                                            numpied = False,
+                                                            return_extended = extra_features_from_quotes)
+                        ## Flatten multiIndex columns
+                        # candles.columns = np.concatenate([[j+'_'+i for i in candles.columns.get_level_values(1).unique()] for j in candles.columns.get_level_values(0).unique()])
+
+                    #     dataPD = dataPD.loc[:,['price_open','price_high','price_low','price_close']].rename(columns=['open','high','low','close'])
+                        # candles = candles.rename(columns={'price_open':'open',
+                        #                                 'price_high':'high',
+                        #                                 'price_low':'low',
+                        #                                 'price_close':'close'})
+
+                        candles['Ticker'] = ticker_i
+
+                        # with open('aggregateTAQ_' + str(int(aggHorizon*60)) + 'sec.csv', 'a+') as f:
+                        #     candles.to_csv(f, header=False)
+                        candles.to_csv('aggregateTAQ_' + str(int(aggHorizon*60)) + 'sec.csv', mode='a', header=False)
+                        # return candles
+    #
+    if save_output:
+        return None
+
+    end = time.time()
+
+    quoteData = quoteData.reset_index(drop=True)
+
+    print('The extraction time was %.3f seconds.' % (end-start))
+
+    quoteData.loc[:,'price'] = (quoteData.bid + quoteData.ofr) / 2
+    quoteData.loc[:,'spread'] = quoteData.ofr - quoteData.bid
+
+    # Cleaning the data
+    if data_sample == 'stable':
+        # P1 is used for keeping data within [10, 15.5]
+        cleanedData = HFDataCleaning(['P1','p2','t1','p3'],quoteData,'quote',exchanges)
+    elif data_sample == 'full':
+        # P1_2 is used for keeping data within [9.5, 16]
+        cleanedData = HFDataCleaning(['P1_2','p2', 'q2', 'p3'],quoteData,'quote',exchanges)
+
+    if extract_candles:
+
+        candles = candleCreateNP_vect_final(data = cleanedData,
+                                            step = aggHorizon,
+                                            verbose=False,
+                                            fillHoles=True,
+                                            sample=data_sample,
+                                            numpied=False,
+                                            return_extended=extra_features_from_quotes)
+
+
+        return candles
+
+    return quoteData
+
+
+
 def updateStockInfo(verbose):
     try:
         path = 'a:/taqhdf5'  #'a:/taqhdf5'
