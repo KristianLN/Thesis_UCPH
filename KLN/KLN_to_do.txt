@@ -1,6 +1,9 @@
 ########## To-Do #######################
 22-08-2020
 * Overvej design af framework til test af pre-processing, features osv.
+    * preprocessing
+    * Feature Selection
+    * Model selection
 * Inkluder sektor markering i generateFeatures.
 * Skriv udkast til ny problemformulering. - Done
 
