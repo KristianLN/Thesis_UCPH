@@ -1,4 +1,15 @@
 ########## To-Do #######################
+22-08-2020
+* Overvej design af framework til test af pre-processing, features osv.
+* Inkluder sektor markering i generateFeatures.
+* Skriv udkast til ny problemformulering. - Done
+
+Tanke:
+
+* Random shuffling af validation data?
+  * I virkeligheden er det jo "tilfældigt" for hvilken aktie den næste pris at forecaste er.
+
+
 08-08-2020
 * Kig på labels fordeling, og hvorfor funktionen ikke returnere 25% i hver klasse. - Done
   * Overvej om labels skal laves på baggrund af fordelingen af alle returns, og ikke kun de individuelle returns for den givne aktie.

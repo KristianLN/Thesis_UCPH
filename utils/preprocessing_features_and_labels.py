@@ -180,21 +180,21 @@ def extract_labels_multi_v5(data = None,
                         splits=None):
 
     if group_style == 'equal':
-        
+
         labels = pd.cut(data, bins=splits, labels=False, right=False, include_lowest=True)
-        
+
         # we need right=False (open right-handside in split interval) to get median into the positive class
         # this makes the last point nan, we fix it here
         if sum(np.isnan(labels)) > 0:
             print(f'Number of NaNs in label: {sum(np.isnan(labels))}. 1 is expected')
             print(f'Returns that lead to NaNs in label: {data[np.where(np.isnan(labels))]}')
             assert sum(np.isnan(labels)) <= 1, "There should be max 1 NaN"
-            
+
             if data[np.where(np.isnan(labels))] >= splits[-1]:
                 labels[np.where(np.isnan(labels))] = classes - 1 # assign last label id
             else:
                 print(data[np.where(np.isnan(labels))], splits[-1])
-                raise ValueError('There is a label NaN where its underlying return is not max of dataset, which it should be')        
+                raise ValueError('There is a label NaN where its underlying return is not max of dataset, which it should be')
 
     elif group_style != 'equal':
         raise ValueError(f'group_style {group_style} not implemented')
@@ -207,7 +207,7 @@ def extract_labels_multi_final(data = None,
                                 classes = 5,
                                 group_style = 'equal',
                                 splits=None):
-    
+
     # this version takes data in a direct returns for a specific ticker
 
     if group_style == 'equal':
@@ -218,21 +218,21 @@ def extract_labels_multi_final(data = None,
 
         #labels[returns > global_median] = 1
         #labels[returns <= global_median] = 0
-        
+
         labels = pd.cut(data, bins=splits, labels=False, right=False, include_lowest=True)
-        
+
         # we need right=False (open right-handside in split interval) to get median into the positive class
         # this makes the last point nan, we fix it here
         if sum(np.isnan(labels)) > 0:
             print(f'Number of NaNs in label: {sum(np.isnan(labels))}. 1 is expected')
             print(f'Returns that lead to NaNs in label: {data[np.where(np.isnan(labels))]}')
             assert sum(np.isnan(labels)) <= 1, "There should be max 1 NaN"
-            
+
             if data[np.where(np.isnan(labels))] >= splits[-1]:
                 labels[np.where(np.isnan(labels))] = classes - 1 # assign last label id
             else:
                 print(data[np.where(np.isnan(labels))], splits[-1])
-                raise ValueError('There is a label NaN where its underlying return is not max of dataset, which it should be')        
+                raise ValueError('There is a label NaN where its underlying return is not max of dataset, which it should be')
 
     elif group_style != 'equal':
         raise ValueError(f'group_style {group_style} not implemented')
@@ -536,7 +536,7 @@ def align_features_and_labels_multi_v5(price_candles,
 
     all_burned_in_features = pd.DataFrame()
     all_labels = pd.DataFrame()
-    
+
     if splitType.lower() == 'global':
         # Making the splits for the labels based on all tickers
         # returns = ((price_candles['close'].values[1:] / price_candles['close'].values[:-1]) -1) * 100
@@ -555,7 +555,7 @@ def align_features_and_labels_multi_v5(price_candles,
             returns.append(ticker_returns)
             tickers.append(ticker_names)
 
-        # concatenate returns and add noise    
+        # concatenate returns and add noise
         returns = np.concatenate(returns)
         if noise:
             returns[returns==0] = np.random.normal(0,1,sum(returns==0))/1000000
@@ -564,11 +564,11 @@ def align_features_and_labels_multi_v5(price_candles,
 
         _, splits = pd.qcut(returns, q=n_classes, labels=False, retbins=True)
         #print(splits)
-        
+
         returns = pd.DataFrame({'returns': returns, 'Ticker': tickers})
-        
-        
-        
+
+
+
     for ticker_iter, ticker_name in enumerate(all_features.ticker.unique()):
         ticker_features = all_features[all_features.ticker==ticker_name].copy(deep=True)
         # removing the "ticker" variable from ticker_features as np.isnan() does not like non-numericals
@@ -613,7 +613,105 @@ def align_features_and_labels_multi_v5(price_candles,
     return all_burned_in_features, all_labels.reset_index(drop=True) # call the function as X, y = align_features_and_labels(.) if you like
 
 
-# v5
+# Included the option to return ticker label as dummies.
+def align_features_and_labels_multi_v6(price_candles,
+                                            all_features,
+                                            prediction_horizon,
+                                            n_feature_lags,
+                                            n_classes,
+                                            safe_burn_in = False,
+                                            data_sample = 'full',
+                                            splitType='global',
+                                            noise = False,
+                                            ticker_dummies = None):
+
+    all_burned_in_features = pd.DataFrame()
+    all_labels = pd.DataFrame()
+
+    if splitType.lower() == 'global':
+        # Making the splits for the labels based on all tickers
+        # returns = ((price_candles['close'].values[1:] / price_candles['close'].values[:-1]) -1) * 100
+#         returns = np.concatenate([((price_candles[price_candles.Ticker==ticker]['close'].values[1:]/\
+#                          price_candles[price_candles.Ticker==ticker]['close'].values[:-1])-1) for ticker\
+#                           in price_candles.Ticker.unique()])
+
+        returns = []
+        tickers = []
+        for ticker in price_candles.Ticker.unique():
+
+            ticker_returns = (price_candles[price_candles.Ticker==ticker]['close'].values[1:]/\
+                                 price_candles[price_candles.Ticker==ticker]['close'].values[:-1]) - 1
+            ticker_names = [ticker for i in range(len(ticker_returns))]
+
+            returns.append(ticker_returns)
+            tickers.append(ticker_names)
+
+        # concatenate returns and add noise
+        returns = np.concatenate(returns)
+        if noise:
+            returns[returns==0] = np.random.normal(0,1,sum(returns==0))/1000000
+
+        tickers = np.concatenate(tickers)
+
+        _, splits = pd.qcut(returns, q=n_classes, labels=False, retbins=True)
+        #print(splits)
+
+        returns = pd.DataFrame({'returns': returns, 'Ticker': tickers})
+
+
+
+    for ticker_iter, ticker_name in enumerate(all_features.ticker.unique()):
+        ticker_features = all_features[all_features.ticker==ticker_name].copy(deep=True)
+        # removing the "ticker" variable from ticker_features as np.isnan() does not like non-numericals
+        #ticker_features = ticker_features.iloc[:, ticker_features.columns != 'ticker']
+        ticker_features.drop('ticker', axis=1, inplace=True)
+        # extract first 4 columns as the lag0 or raw OHLC prices (used for labelling)
+        #ticker_prices = price_candles[price_candles.Ticker==ticker_name]['close'].values # candles.iloc[:, :4].values
+        ticker_returns = returns[returns.Ticker==ticker_name]['returns'].values
+
+        if not safe_burn_in:
+            assert data_sample == 'full'
+            # we assume data_sample is full and that we can continue features from yesterday's values.
+            # that we have a single burn-in at the beginning and that's it
+
+            # get first index that has no NaNs (the sum checks for True across columns, we look for sum == 0 and where that is first True)
+            burned_in_idx = np.where((np.sum(np.isnan(ticker_features.values), axis=1) == 0) == True)[0][0]
+
+            # calculate end-point cut-off to match with labels
+            end_point_cut = max(prediction_horizon, n_feature_lags + 1)
+
+            # slice away the observations used for burn-in (taking off 1 at the end to match with labels [slice off "prediction_horizon"])
+            burned_in_features = ticker_features.iloc[burned_in_idx : -end_point_cut, :] #.reset_index(drop=True) # features[burned_in_idx:] latter is sligthly faster but maybe not as precise
+
+            # slice away the burned-in indices from labels
+            labels = extract_labels_multi_final(data = ticker_returns[(burned_in_idx+n_feature_lags):],
+                                                classes = n_classes,
+                                                group_style = 'equal',
+                                                splits = splits)
+            # labels, returns, thresholds = extract_labels(data = candles[burned_in_idx + n_feature_lags : , :],
+            #                                             classes = n_classes, group_style = 'equal')
+
+            # check if there are remaining NaNs are burn-in (means error)
+            remaining_nans = np.where(np.isnan(burned_in_features.values))[0].size
+            if remaining_nans > 0:
+                raise ValueError('Had NaN in burned_in_features after burn-in')
+
+        # Adding the ticker
+        burned_in_features['ticker'] = ticker_name
+
+        # Returning the ticker as dummies
+        if ticker_dummies is not None:
+
+            tickers = burned_in_features.pop('ticker')
+            burned_in_features = pd.concat([burned_in_features, pd.get_dummies(tickers, prefix='ticker', drop_first=False)], axis=1)
+        # Adding the burned in data
+        all_burned_in_features = pd.concat([all_burned_in_features, burned_in_features.reset_index(drop=True)])
+        all_labels = pd.concat([all_labels, pd.Series(labels)])
+        print(ticker_name + " done")
+
+        return all_burned_in_features.reset_index(drop=True), all_labels.reset_index(drop=True) # call the function as X, y = align_features_and_labels(.) if you like
+
+# v6
 def align_features_and_labels_multi_final(price_candles,
                                             all_features,
                                             prediction_horizon,
@@ -622,11 +720,12 @@ def align_features_and_labels_multi_final(price_candles,
                                             safe_burn_in = False,
                                             data_sample = 'full',
                                             splitType='global',
-                                            noise = False):
+                                            noise = False,
+                                            ticker_dummies = False):
 
     all_burned_in_features = pd.DataFrame()
     all_labels = pd.DataFrame()
-    
+
     if splitType.lower() == 'global':
         # Making the splits for the labels based on all tickers
         # returns = ((price_candles['close'].values[1:] / price_candles['close'].values[:-1]) -1) * 100
@@ -645,7 +744,7 @@ def align_features_and_labels_multi_final(price_candles,
             returns.append(ticker_returns)
             tickers.append(ticker_names)
 
-        # concatenate returns and add noise    
+        # concatenate returns and add noise
         returns = np.concatenate(returns)
         if noise:
             returns[returns==0] = np.random.normal(0,1,sum(returns==0))/1000000
@@ -654,11 +753,11 @@ def align_features_and_labels_multi_final(price_candles,
 
         _, splits = pd.qcut(returns, q=n_classes, labels=False, retbins=True)
         #print(splits)
-        
+
         returns = pd.DataFrame({'returns': returns, 'Ticker': tickers})
-        
-        
-        
+
+
+
     for ticker_iter, ticker_name in enumerate(all_features.ticker.unique()):
         ticker_features = all_features[all_features.ticker==ticker_name].copy(deep=True)
         # removing the "ticker" variable from ticker_features as np.isnan() does not like non-numericals
@@ -695,12 +794,21 @@ def align_features_and_labels_multi_final(price_candles,
             if remaining_nans > 0:
                 raise ValueError('Had NaN in burned_in_features after burn-in')
 
+        # Adding the ticker
         burned_in_features['ticker'] = ticker_name
-        all_burned_in_features = pd.concat([all_burned_in_features, burned_in_features])
+
+        # Adding the burned in data
+        all_burned_in_features = pd.concat([all_burned_in_features, burned_in_features.reset_index(drop=True)])
         all_labels = pd.concat([all_labels, pd.Series(labels)])
         print(ticker_name + " done")
 
-    return all_burned_in_features, all_labels.reset_index(drop=True) # call the function as X, y = align_features_and_labels(.) if you like
+    # Returning the ticker as dummies
+    if ticker_dummies:
+
+        tickers = all_burned_in_features.pop('ticker')
+        all_burned_in_features = pd.concat([all_burned_in_features, pd.get_dummies(tickers, prefix='ticker', drop_first=False)], axis=1)
+
+    return all_burned_in_features.reset_index(drop=True), all_labels.reset_index(drop=True) # call the function as X, y = align_features_and_labels(.) if you like
 
 
 
