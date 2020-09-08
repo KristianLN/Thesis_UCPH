@@ -1,0 +1,13 @@
+- Batch size: can we find academic papers or good solid resources that can help us decide on batch size? 
+--- FMNS' GPU vs CPU experiments show CPU is faster than GPU for very small batch size, they are equal for medium sized batch size, and GPU is faster for large batch size.
+--- So to help ourselves and get the most out of GPUs, we should focus on getting as large batch size as we can find support for in the literature
+
+- Prepare pre-processing and feature set configurations
+--- Just need a variable e.g. "preprocess_config" that can take all the values ('individual', 'normalization', etc.)
+--- And then a series of if-sentences calling the correct preprocessing functions based on "preprocess_config"
+--- For feature sets, probably just having the option of using the first 4 features or all features is fine for now
+
+- Figure out if we need to upgrade for an Enterprise subscription (and what it costs) to get proper GPU quotas (right now, we can get 10 "cores" but we are super-super low in the computing queue (GPU never started). There is almost no queue for their free/low-cost CPU but it is slow)
+--- Maybe reach out to Azure, asking what we need to do to get 1 or a few GPUs in a cluster in a short-term pay-as-go deal.
+
+- Cross-validation seems very rarely mentioned in TF/Keras context. Maybe there is no point in using it for our training?

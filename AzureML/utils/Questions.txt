@@ -1,0 +1,3 @@
+############################################################ Questions to discuss ############################################################
+
+* T2 cleaning procedure: I am in doubt if we should use it at all. I think we should be cautious by using F, if we do not know if we can use ISO orders in live trading going forward.
