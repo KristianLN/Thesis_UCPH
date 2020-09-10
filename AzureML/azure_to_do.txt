@@ -1,6 +1,17 @@
-- Batch size: can we find academic papers or good solid resources that can help us decide on batch size? 
+- Batch size: can we find academic papers or good solid resources that can help us decide on batch size?
 --- FMNS' GPU vs CPU experiments show CPU is faster than GPU for very small batch size, they are equal for medium sized batch size, and GPU is faster for large batch size.
 --- So to help ourselves and get the most out of GPUs, we should focus on getting as large batch size as we can find support for in the literature
+Sources (However, focused on computer vision):
+  * https://stats.stackexchange.com/questions/164876/tradeoff-batch-size-vs-number-of-iterations-to-train-a-neural-network (This let to most of the below)
+    * https://mydeeplearningnb.wordpress.com/2019/02/23/convnet-for-classification-of-cifar-10/
+    * https://arxiv.org/pdf/1606.02228.pdf
+    * https://arxiv.org/pdf/1711.00489.pdf
+
+A application on prediction directions of financial markets
+  * https://dynresmanagement.com/uploads/3/5/2/7/35274584/ffn_trading.pdf
+  * https://humboldt-wi.github.io/blog/research/information_systems_1718/06financialtime-series/ (This is really good!!)
+Interesting side articles:
+ * https://machinelearningmastery.com/use-different-batch-sizes-training-predicting-python-keras/
 
 - Prepare pre-processing and feature set configurations
 --- Just need a variable e.g. "preprocess_config" that can take all the values ('individual', 'normalization', etc.)
@@ -11,3 +22,5 @@
 --- Maybe reach out to Azure, asking what we need to do to get 1 or a few GPUs in a cluster in a short-term pay-as-go deal.
 
 - Cross-validation seems very rarely mentioned in TF/Keras context. Maybe there is no point in using it for our training?
+KLN: Some of the articles above presents some nice thoughts on this challenge: In essences; Batch training is a sort of blocked time series cross-validation, as the batch size is the number 
+of observations (rows) our model see before the model parameters are updated.
