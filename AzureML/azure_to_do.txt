@@ -25,3 +25,6 @@ Interesting side articles:
 - Cross-validation seems very rarely mentioned in TF/Keras context. Maybe there is no point in using it for our training?
 KLN: Some of the articles above presents some nice thoughts on this challenge: In essences; Batch training is a sort of blocked time series cross-validation, as the batch size is the number
 of observations (rows) our model see before the model parameters are updated.
+
+
+-- Restructure data correctly
