@@ -712,20 +712,25 @@ def align_features_and_labels_multi_v6(price_candles,
 
         return all_burned_in_features.reset_index(drop=True), all_labels.reset_index(drop=True) # call the function as X, y = align_features_and_labels(.) if you like
 
-# v6
-def align_features_and_labels_multi_final(price_candles,
-                                            all_features,
-                                            prediction_horizon,
-                                            n_feature_lags,
-                                            n_classes,
-                                            safe_burn_in = False,
-                                            data_sample = 'full',
-                                            splitType='global',
-                                            noise = False,
-                                            ticker_dummies = False):
+# Now extracting the time indices to be used to sort afterwards.
+def align_features_and_labels_multi_v7(price_candles,
+                                        all_features,
+                                        prediction_horizon,
+                                        n_feature_lags,
+                                        n_classes,
+                                        safe_burn_in = False,
+                                        data_sample = 'full',
+                                        splitType='global',
+                                        noise = False,
+                                        ticker_dummies = False):
 
     all_burned_in_features = pd.DataFrame()
+    all_burned_in_indices = pd.DataFrame()
     all_labels = pd.DataFrame()
+
+    dailyIndices = pd.DataFrame({'days':price_candles.index.get_level_values(0),
+                                      'timestemps':price_candles.index.get_level_values(1),
+                                      'ticker':price_candles.Ticker})
 
     if splitType.lower() == 'global':
         # Making the splits for the labels based on all tickers
@@ -736,6 +741,7 @@ def align_features_and_labels_multi_final(price_candles,
 
         returns = []
         tickers = []
+
         for ticker in price_candles.Ticker.unique():
 
             ticker_returns = (price_candles[price_candles.Ticker==ticker]['close'].values[1:]/\
@@ -757,10 +763,11 @@ def align_features_and_labels_multi_final(price_candles,
 
         returns = pd.DataFrame({'returns': returns, 'Ticker': tickers})
 
-
+    keepCheck = []
 
     for ticker_iter, ticker_name in enumerate(all_features.ticker.unique()):
         ticker_features = all_features[all_features.ticker==ticker_name].copy(deep=True)
+        ticker_indices = dailyIndices[dailyIndices.ticker==ticker_name].copy(deep=True)
         # removing the "ticker" variable from ticker_features as np.isnan() does not like non-numericals
         #ticker_features = ticker_features.iloc[:, ticker_features.columns != 'ticker']
         ticker_features.drop('ticker', axis=1, inplace=True)
@@ -775,13 +782,13 @@ def align_features_and_labels_multi_final(price_candles,
 
             # get first index that has no NaNs (the sum checks for True across columns, we look for sum == 0 and where that is first True)
             burned_in_idx = np.where((np.sum(np.isnan(ticker_features.values), axis=1) == 0) == True)[0][0]
-
+            keepCheck.append(burned_in_idx)
             # calculate end-point cut-off to match with labels
             end_point_cut = max(prediction_horizon, n_feature_lags + 1)
 
             # slice away the observations used for burn-in (taking off 1 at the end to match with labels [slice off "prediction_horizon"])
             burned_in_features = ticker_features.iloc[burned_in_idx : -end_point_cut, :] #.reset_index(drop=True) # features[burned_in_idx:] latter is sligthly faster but maybe not as precise
-
+            burned_in_indices = ticker_indices.iloc[burned_in_idx : -end_point_cut, :]
             # slice away the burned-in indices from labels
             labels = extract_labels_multi_final(data = ticker_returns[(burned_in_idx+n_feature_lags):],
                                                 classes = n_classes,
@@ -800,6 +807,7 @@ def align_features_and_labels_multi_final(price_candles,
 
         # Adding the burned in data
         all_burned_in_features = pd.concat([all_burned_in_features, burned_in_features.reset_index(drop=True)])
+        all_burned_in_indices = pd.concat([all_burned_in_indices, burned_in_indices.reset_index(drop=True)])
         all_labels = pd.concat([all_labels, pd.Series(labels)])
         print(ticker_name + " done")
 
@@ -807,10 +815,122 @@ def align_features_and_labels_multi_final(price_candles,
     if ticker_dummies:
 
         tickers = all_burned_in_features.pop('ticker')
-        all_burned_in_features = pd.concat([all_burned_in_features, pd.get_dummies(tickers, prefix='ticker', drop_first=False)], axis=1)
+        all_burned_in_features = pd.concat([all_burned_in_features, pd.get_dummies(tickers, prefix='d_ticker', drop_first=False)], axis=1)
+#     print('Are all burned_in_idx the same?', all(keepCheck==keepCheck[0]))
+#     print(dailyIndicies.head(50))
+    return all_burned_in_features.reset_index(drop=True),\
+            all_labels.reset_index(drop=True),\
+            all_burned_in_indices.reset_index(drop=True)
 
-    return all_burned_in_features.reset_index(drop=True), all_labels.reset_index(drop=True) # call the function as X, y = align_features_and_labels(.) if you like
+# v7
+def align_features_and_labels_multi_final(price_candles,
+                                        all_features,
+                                        prediction_horizon,
+                                        n_feature_lags,
+                                        n_classes,
+                                        safe_burn_in = False,
+                                        data_sample = 'full',
+                                        splitType='global',
+                                        noise = False,
+                                        ticker_dummies = False):
 
+    all_burned_in_features = pd.DataFrame()
+    all_burned_in_indices = pd.DataFrame()
+    all_labels = pd.DataFrame()
+
+    dailyIndices = pd.DataFrame({'days':price_candles.index.get_level_values(0),
+                                      'timestemps':price_candles.index.get_level_values(1),
+                                      'ticker':price_candles.Ticker})
+
+    if splitType.lower() == 'global':
+        # Making the splits for the labels based on all tickers
+        # returns = ((price_candles['close'].values[1:] / price_candles['close'].values[:-1]) -1) * 100
+#         returns = np.concatenate([((price_candles[price_candles.Ticker==ticker]['close'].values[1:]/\
+#                          price_candles[price_candles.Ticker==ticker]['close'].values[:-1])-1) for ticker\
+#                           in price_candles.Ticker.unique()])
+
+        returns = []
+        tickers = []
+
+        for ticker in price_candles.Ticker.unique():
+
+            ticker_returns = (price_candles[price_candles.Ticker==ticker]['close'].values[1:]/\
+                                 price_candles[price_candles.Ticker==ticker]['close'].values[:-1]) - 1
+            ticker_names = [ticker for i in range(len(ticker_returns))]
+
+            returns.append(ticker_returns)
+            tickers.append(ticker_names)
+
+        # concatenate returns and add noise
+        returns = np.concatenate(returns)
+        if noise:
+            returns[returns==0] = np.random.normal(0,1,sum(returns==0))/1000000
+
+        tickers = np.concatenate(tickers)
+
+        _, splits = pd.qcut(returns, q=n_classes, labels=False, retbins=True)
+        #print(splits)
+
+        returns = pd.DataFrame({'returns': returns, 'Ticker': tickers})
+
+    keepCheck = []
+
+    for ticker_iter, ticker_name in enumerate(all_features.ticker.unique()):
+        ticker_features = all_features[all_features.ticker==ticker_name].copy(deep=True)
+        ticker_indices = dailyIndices[dailyIndices.ticker==ticker_name].copy(deep=True)
+        # removing the "ticker" variable from ticker_features as np.isnan() does not like non-numericals
+        #ticker_features = ticker_features.iloc[:, ticker_features.columns != 'ticker']
+        ticker_features.drop('ticker', axis=1, inplace=True)
+        # extract first 4 columns as the lag0 or raw OHLC prices (used for labelling)
+        #ticker_prices = price_candles[price_candles.Ticker==ticker_name]['close'].values # candles.iloc[:, :4].values
+        ticker_returns = returns[returns.Ticker==ticker_name]['returns'].values
+
+        if not safe_burn_in:
+            assert data_sample == 'full'
+            # we assume data_sample is full and that we can continue features from yesterday's values.
+            # that we have a single burn-in at the beginning and that's it
+
+            # get first index that has no NaNs (the sum checks for True across columns, we look for sum == 0 and where that is first True)
+            burned_in_idx = np.where((np.sum(np.isnan(ticker_features.values), axis=1) == 0) == True)[0][0]
+            keepCheck.append(burned_in_idx)
+            # calculate end-point cut-off to match with labels
+            end_point_cut = max(prediction_horizon, n_feature_lags + 1)
+
+            # slice away the observations used for burn-in (taking off 1 at the end to match with labels [slice off "prediction_horizon"])
+            burned_in_features = ticker_features.iloc[burned_in_idx : -end_point_cut, :] #.reset_index(drop=True) # features[burned_in_idx:] latter is sligthly faster but maybe not as precise
+            burned_in_indices = ticker_indices.iloc[burned_in_idx : -end_point_cut, :]
+            # slice away the burned-in indices from labels
+            labels = extract_labels_multi_final(data = ticker_returns[(burned_in_idx+n_feature_lags):],
+                                                classes = n_classes,
+                                                group_style = 'equal',
+                                                splits = splits)
+            # labels, returns, thresholds = extract_labels(data = candles[burned_in_idx + n_feature_lags : , :],
+            #                                             classes = n_classes, group_style = 'equal')
+
+            # check if there are remaining NaNs are burn-in (means error)
+            remaining_nans = np.where(np.isnan(burned_in_features.values))[0].size
+            if remaining_nans > 0:
+                raise ValueError('Had NaN in burned_in_features after burn-in')
+
+        # Adding the ticker
+        burned_in_features.loc[:,'ticker'] = ticker_name
+
+        # Adding the burned in data
+        all_burned_in_features = pd.concat([all_burned_in_features, burned_in_features.reset_index(drop=True)])
+        all_burned_in_indices = pd.concat([all_burned_in_indices, burned_in_indices.reset_index(drop=True)])
+        all_labels = pd.concat([all_labels, pd.Series(labels)])
+        print(ticker_name + " done")
+
+    # Returning the ticker as dummies
+    if ticker_dummies:
+
+        tickers = all_burned_in_features.pop('ticker')
+        all_burned_in_features = pd.concat([all_burned_in_features, pd.get_dummies(tickers, prefix='d_ticker', drop_first=False)], axis=1)
+#     print('Are all burned_in_idx the same?', all(keepCheck==keepCheck[0]))
+#     print(dailyIndicies.head(50))
+    return all_burned_in_features.reset_index(drop=True),\
+            all_labels.reset_index(drop=True),\
+            all_burned_in_indices.reset_index(drop=True)
 
 
 def pre_processing_initial(rawData,ppDict,subBy,verbose=False):
