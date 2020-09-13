@@ -42,27 +42,28 @@ Label construction:
 
 ################################## To be tested ##################################
 
-Preprocessing:
+Preprocessing: - Done (except for individual)
 
 - Individual
 - Normalization
 - Power
 - Quantile Gaussain
+- MinMax
 - Stacked PP
 
-- To use first difference on prices or not
+- To use first difference on prices or not - cancelled for now
 
 Combinations: 10
 
-Feature selection/construction:
+Feature selection/construction: - cancelled for now.
 
 - Use Marco de Lopez feature selection method (also based on RF)
 - Use all features (and let potential L2 regularization control effects)
 
-- Determine how many lags to include
+- Determine how many lags to include - Done
 	- 1, 3, 5, 10, 20
 
-- Any feature engineering?
+- Any feature engineering? - cancelled for now
 		- Discretization of continuous features, see (Kotsiantis et al., 2006.).
 
 Combinations: 20
@@ -73,23 +74,34 @@ Model selection:
 	C: 10 combinations
 	lr: 4 combinations
 
-- For boosted trees: number of trees, max width?, max depth?, ...
+- For boosted trees:
+		-- number of trees,
+		-- max width?,
+		-- max depth?, ...
 	Combinations: MANY
 
-- For NN: number of layers, number of neurons in each, loss function, type of network (FF/conv/LSTM), optimizer + learning rate parameters (and decay),
-	type of regularization + reg. factor, use dropout or not + dropout factor, use batch-normalization or not, use data-augmentation or not
+- For NN:
+		-- number of layers,  (based on literature)
+		-- number of neurons in each, (based on literature)
+		-- loss function (conditional on type of network),
+		-- type of network (FF/conv/LSTM), (FF/LSTM)
+		-- optimizer + learning rate parameters (and decay), ('ADAM':lr = {'to-be-chosen'})
+		-- type of regularization + reg. factor, ('l2':c={0.1,0.01,0.001,0.0001})
+		-- use dropout or not + dropout factor,
+		-- use batch-normalization or not,
+		-- use data-augmentation or not (left out for now)
 	Combinations: ABSURD MANY
 
-- Decide on performance metric
+- Decide on performance metric - Done (AUC)
 	- AUC (binary), Accuaracy, F1 (binary), log loss
 
 - Settings:
- - Epochs: Y
+ - Epochs: 50
  - Early stopping:
- 		- Patients: x % of Y
-		- Threshold: 0.0001
+ 		- Patients: x % of Y (25%)
+		- Threshold: 0.0001 - cancelled for now
 
-CV approach:
+CV approach: - cancelled for now
 - Regular K-fold			## with or without shuffle and with or without stratifying folds
 - Time-wise CV 				##, implies no shuffle and no stratify
 		- See this article for some great ways of doing TS CV: https://hub.packtpub.com/cross-validation-strategies-for-time-series-forecasting-tutorial/
@@ -100,9 +112,9 @@ CV approach:
 Different models:
 - 1-2 Logistic Regressions with or without regularization, 1 possibly as much based on Econometrics theory as possible
 - 1 boosted trees model
-- 1-3 NN (Feed forward, Conv, LSTM)
+- 1-3 NN (Feed forward, LSTM)
 
-- Combinations: 7
+- Combinations: 6
 
 Label construction:
 - Binary median split
