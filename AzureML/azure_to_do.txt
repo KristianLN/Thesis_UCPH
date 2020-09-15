@@ -2,6 +2,7 @@
 
 -- Restructure data correctly - Done
 -- Consider to add more features (sector return, market return, past labels)
+    -- !!! Only missing to reinclude the sector dummies!!!!
 -- Settle on NN model specifications
     -- number of layers,  (based on literature)
     -- number of neurons in each, (based on literature)
@@ -14,7 +15,7 @@
 -- Logisic Regression - secondary
 -- XG Boost - secondary
 -- Add all three AUC types
--- Add option to specify split of labels.
+-- Add option to specify split of labels. - done (Keras)
 -- Shuffle each batch
 
 
