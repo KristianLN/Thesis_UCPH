@@ -2469,5 +2469,522 @@ def generateFeatures_multi_v2(data, listOfFeatures=[], feature_lags=1,stockTable
                                                                 , prefix='sector'
                                                                 , drop_first=False)]
                                 , axis=1)
-    
+
+    return multi_features
+
+def generateFeatures_multi_v3(data,
+                                listOfFeatures=[],
+                                feature_lags=1,
+                                stockTable = None):
+
+    # try:
+    if (stockTable is not None) & ('sector' not in data.columns.str.lower()):
+# if (stockTable != None) & ('sector' not in data.columns.str.lower()):
+    # Appending the stock information to the data.
+        data = data.merge(stockTable[['ticker','sector']],left_on='Ticker',right_on='ticker',how='left')
+    # except:
+        # None
+
+    multi_features = pd.DataFrame()
+    # print(data.columns)
+    for ticker_iter, ticker_name in enumerate(data.Ticker.unique()):
+
+        featuresPD = pd.DataFrame()
+        dataPD = data[data.Ticker==ticker_name].copy(deep=True)
+
+        for feature in listOfFeatures:
+
+            # Past observations
+            if feature.lower() == 'pastobs':
+                featuresPD['open'] = dataPD.open
+                featuresPD['high'] = dataPD.high
+                featuresPD['low'] = dataPD.low
+                featuresPD['close'] = dataPD.close
+
+            elif feature.lower() == 'spread':
+                featuresPD['spread_open'] = dataPD.spread_open
+                featuresPD['spread_high'] = dataPD.spread_high
+                featuresPD['spread_low'] = dataPD.spread_low
+                featuresPD['spread_close'] = dataPD.spread_close
+
+            elif feature.lower() == 'bidsize':
+                featuresPD['bidsize_open'] = dataPD.bidsize_open
+                featuresPD['bidsize_high'] = dataPD.bidsize_high
+                featuresPD['bidsize_low'] = dataPD.bidsize_low
+                featuresPD['bidsize_close'] = dataPD.bidsize_close
+
+            elif feature.lower() == 'ofrsize':
+                featuresPD['ofrsize_open'] = dataPD.ofrsize_open
+                featuresPD['ofrsize_high'] = dataPD.ofrsize_high
+                featuresPD['ofrsize_low'] = dataPD.ofrsize_low
+                featuresPD['ofrsize_close'] = dataPD.ofrsize_close
+
+            # Stochastic K
+            elif feature.lower() == 'stok':
+
+                tempFeatures= ta.momentum.stoch(dataPD.high,
+                                                dataPD.low,
+                                                dataPD.close)
+
+                # Adding the feature
+                featuresPD['stok'] = tempFeatures
+
+            # Stochastic D
+            elif feature.lower() == 'stod':
+
+                tempFeatures= ta.momentum.stoch_signal(dataPD.high,
+                                                       dataPD.low,
+                                                       dataPD.close)
+                # Adding the feature
+                featuresPD['stod'] = tempFeatures
+
+            # Slow Stochastic D
+            elif feature.lower() == 'sstod':
+
+                tempFeatures= ta.trend.sma_indicator(ta.momentum.stoch_signal(dataPD.high,
+                                                                              dataPD.low,
+                                                                              dataPD.close))
+                # Adding the feature
+                featuresPD['sstod'] = tempFeatures
+
+            # Williams %R
+            elif feature.lower() == 'wilr':
+
+                tempFeatures= ta.momentum.wr(dataPD.high,
+                                             dataPD.low,
+                                             dataPD.close)
+                # Adding the feature
+                featuresPD['wilr'] = tempFeatures
+
+            # Rate Of Change
+            elif feature.lower() == 'roc':
+
+                tempFeatures= ta.momentum.roc(dataPD.close)
+
+                # Adding the feature
+                featuresPD['roc'] = tempFeatures
+
+            # Relative Strength Index
+            elif feature.lower() == 'rsi':
+
+                tempFeatures= ta.momentum.rsi(dataPD.close)
+
+                # Adding the feature
+                featuresPD['rsi'] = tempFeatures
+
+            # Average True Range
+            elif feature.lower() == 'atr':
+
+                tempFeatures= ta.volatility.average_true_range(dataPD.high,
+                                                               dataPD.low,
+                                                               dataPD.close)
+                # Adding the feature
+                featuresPD['atr'] = tempFeatures
+
+            # Commodity Channel Index
+            elif feature.lower() == 'cci':
+
+                tempFeatures= ta.trend.cci(dataPD.high,
+                                           dataPD.low,
+                                           dataPD.close)
+                # Adding the feature
+                featuresPD['cci'] = tempFeatures
+
+             # Detrended Price Ocillator
+            elif feature.lower() == 'dpo':
+
+                tempFeatures= ta.trend.dpo(dataPD.close)
+
+                # Adding the feature
+                featuresPD['dpo'] = tempFeatures
+
+            # Simple Moving Average
+            elif feature.lower() == 'sma':
+
+                tempFeatures= ta.trend.sma_indicator(dataPD.close)
+
+                # Adding the feature
+                featuresPD['sma'] = tempFeatures
+
+            # Exponential Moving Average
+            elif feature.lower() == 'ema':
+
+                tempFeatures= ta.trend.ema_indicator(dataPD.close)
+
+                # Adding the feature
+                featuresPD['ema'] = tempFeatures
+
+            # Moving Average Convergence Divergence
+            elif feature.lower() == 'macd':
+
+                # note: having all 3 causes multicollinearity. Maybe not a problem in ML, let's see :-)
+                # macd is the difference between two EMAs
+                # macd_signal is an EMA of the above macd line
+                # macd_diff is the so-called histogram (just bars really) of the time-wise difference between macd and macd_signal
+
+                # Adding the features
+                featuresPD['macd'] = ta.trend.macd(dataPD.close)
+
+            # Moving Average Convergence Divergence Difference
+            elif feature.lower() == 'macd_diff':
+                # Adding the features
+                featuresPD['macd_diff'] = ta.trend.macd_diff(dataPD.close)
+
+            # Moving Average Convergence Divergence Signal
+            elif feature.lower() == 'macd_signal':
+                # Adding the features
+                featuresPD['macd_signal'] = ta.trend.macd_signal(dataPD.close)
+
+             # Disparity 5
+            elif feature.lower() == 'dis5':
+
+                tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,5))*100
+
+                # Adding the feature
+                featuresPD['dis5'] = tempFeatures
+
+            # Disparity 10
+            elif feature.lower() == 'dis10':
+
+                tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,10))*100
+
+                # Adding the feature
+                featuresPD['dis10'] = tempFeatures
+
+            # Bollinger Bands
+            elif feature.lower() == 'bb':
+
+                # Define Bollinger Bands function to extract from
+                bb_function = ta.volatility.BollingerBands(close=dataPD.close, n=20, ndev=2)
+
+                # Adding the features
+                featuresPD['bb_mavg'] = bb_function.bollinger_mavg()
+                featuresPD['bb_hband'] = bb_function.bollinger_hband()
+                featuresPD['bb_lband'] = bb_function.bollinger_lband()
+                featuresPD['bb_pband'] = bb_function.bollinger_pband()
+                featuresPD['bb_wband'] = bb_function.bollinger_wband()
+
+        # if we want any lags:
+        if feature_lags > 0:
+
+            # collect names of all raw features (before any lagging)
+            all_raw_features = featuresPD.columns
+
+            # loop through each lag and shift all features at once
+            for roll_i in np.arange(feature_lags + 1): # + 1 as we treat feature_lags = 1 as having both lag0 and lag1
+
+                # define new column name (feature_name_ + lagX) where X = roll_i is the shifting parameter
+                new_col_names = [feature_name + '_lag' + str(roll_i) for feature_name in all_raw_features]
+
+                # Shift/roll all raw features with the shifting parameter roll_i and save as new columns.
+                # The shift parameter must be negative (we want lag0 to be the 'newest'/'latest')
+                featuresPD[new_col_names] = featuresPD[all_raw_features].shift( - (feature_lags - roll_i))
+
+            # remove all raw features
+            featuresPD = featuresPD.loc[:, ~featuresPD.columns.isin(all_raw_features)]
+
+            # Adjust price feature
+        if 'pastobs' in listOfFeatures:
+            if feature_lags > 0:
+                priceCols = np.concatenate([[c for c in featuresPD.columns if c.startswith(t,0,len(t))] for t in ['open','high','low','close']])#[0:len(t)] == t
+                # print(priceCols)
+                tempClose = featuresPD.close_lag0.copy(deep=True)
+    #             print('\n')
+
+    #             featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols] - featuresPD.close_lag0
+                featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
+    #             print('\n')
+    #             print([featuresPD.loc[:,priceCols] - featuresPD.close_lag0][0:5])
+    #             print(tempClose)
+                featuresPD.loc[:,'close_lag0'] = tempClose
+            else:
+    #             tempClose = copy.deepcopy(featuresPD.close.values)
+                tempClose = featuresPD.close.copy(deep=True)
+
+    #             print(tempClose)
+    #             featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']] - featuresPD.close
+                featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
+    #             print('\n')
+    #             print(featuresPD.loc[:,['open','high','low','close']])
+    #             print(featuresPD.close)
+    #             print([featuresPD.loc[:,['open','high','low','close']] - featuresPD.close][0:5])
+                featuresPD.loc[:,'close'] = tempClose
+
+        featuresPD['ticker'] = ticker_name
+
+        # append
+        multi_features = pd.concat([multi_features, featuresPD])
+        # print(ticker_name + " done")
+
+    # Finally adding sector dummies if needed
+    # Sector Dummies
+    if 'sector' in [ele.lower() for ele in listOfFeatures]:
+
+        ## Adding Sector dummies
+        sectors = data.pop('sector')
+        multi_features = pd.concat([multi_features,
+                                    pd.get_dummies(sectors
+                                                    ,prefix='d_sector'
+                                                    ,drop_first=False)]
+                                                    ,axis=1)
+
+    return multi_features
+
+def generateFeatures_multi_final(data, listOfFeatures=[], feature_lags=1,stockTable = None):
+
+    # try:
+    if (stockTable is not None) & ('sector' not in data.columns.str.lower()):
+# if (stockTable != None) & ('sector' not in data.columns.str.lower()):
+    # Appending the stock information to the data.
+        data = data.merge(stockTable[['ticker','sector']],left_on='Ticker',right_on='ticker',how='left')
+    # except:
+        # None
+
+    multi_features = pd.DataFrame()
+    # print(data.columns)
+    for ticker_iter, ticker_name in enumerate(data.Ticker.unique()):
+
+        featuresPD = pd.DataFrame()
+        dataPD = data[data.Ticker==ticker_name].copy(deep=True)
+
+        for feature in listOfFeatures:
+
+            # Past observations
+            if feature.lower() == 'pastobs':
+                featuresPD['open'] = dataPD.open
+                featuresPD['high'] = dataPD.high
+                featuresPD['low'] = dataPD.low
+                featuresPD['close'] = dataPD.close
+
+            elif feature.lower() == 'spread':
+                featuresPD['spread_open'] = dataPD.spread_open
+                featuresPD['spread_high'] = dataPD.spread_high
+                featuresPD['spread_low'] = dataPD.spread_low
+                featuresPD['spread_close'] = dataPD.spread_close
+
+            elif feature.lower() == 'bidsize':
+                featuresPD['bidsize_open'] = dataPD.bidsize_open
+                featuresPD['bidsize_high'] = dataPD.bidsize_high
+                featuresPD['bidsize_low'] = dataPD.bidsize_low
+                featuresPD['bidsize_close'] = dataPD.bidsize_close
+
+            elif feature.lower() == 'ofrsize':
+                featuresPD['ofrsize_open'] = dataPD.ofrsize_open
+                featuresPD['ofrsize_high'] = dataPD.ofrsize_high
+                featuresPD['ofrsize_low'] = dataPD.ofrsize_low
+                featuresPD['ofrsize_close'] = dataPD.ofrsize_close
+
+            # Stochastic K
+            elif feature.lower() == 'stok':
+
+                tempFeatures= ta.momentum.stoch(dataPD.high,
+                                                dataPD.low,
+                                                dataPD.close)
+
+                # Adding the feature
+                featuresPD['stok'] = tempFeatures
+
+            # Stochastic D
+            elif feature.lower() == 'stod':
+
+                tempFeatures= ta.momentum.stoch_signal(dataPD.high,
+                                                       dataPD.low,
+                                                       dataPD.close)
+                # Adding the feature
+                featuresPD['stod'] = tempFeatures
+
+            # Slow Stochastic D
+            elif feature.lower() == 'sstod':
+
+                tempFeatures= ta.trend.sma_indicator(ta.momentum.stoch_signal(dataPD.high,
+                                                                              dataPD.low,
+                                                                              dataPD.close))
+                # Adding the feature
+                featuresPD['sstod'] = tempFeatures
+
+            # Williams %R
+            elif feature.lower() == 'wilr':
+
+                tempFeatures= ta.momentum.wr(dataPD.high,
+                                             dataPD.low,
+                                             dataPD.close)
+                # Adding the feature
+                featuresPD['wilr'] = tempFeatures
+
+            # Rate Of Change
+            elif feature.lower() == 'roc':
+
+                tempFeatures= ta.momentum.roc(dataPD.close)
+
+                # Adding the feature
+                featuresPD['roc'] = tempFeatures
+
+            # Relative Strength Index
+            elif feature.lower() == 'rsi':
+
+                tempFeatures= ta.momentum.rsi(dataPD.close)
+
+                # Adding the feature
+                featuresPD['rsi'] = tempFeatures
+
+            # Average True Range
+            elif feature.lower() == 'atr':
+
+                tempFeatures= ta.volatility.average_true_range(dataPD.high,
+                                                               dataPD.low,
+                                                               dataPD.close)
+                # Adding the feature
+                featuresPD['atr'] = tempFeatures
+
+            # Commodity Channel Index
+            elif feature.lower() == 'cci':
+
+                tempFeatures= ta.trend.cci(dataPD.high,
+                                           dataPD.low,
+                                           dataPD.close)
+                # Adding the feature
+                featuresPD['cci'] = tempFeatures
+
+             # Detrended Price Ocillator
+            elif feature.lower() == 'dpo':
+
+                tempFeatures= ta.trend.dpo(dataPD.close)
+
+                # Adding the feature
+                featuresPD['dpo'] = tempFeatures
+
+            # Simple Moving Average
+            elif feature.lower() == 'sma':
+
+                tempFeatures= ta.trend.sma_indicator(dataPD.close)
+
+                # Adding the feature
+                featuresPD['sma'] = tempFeatures
+
+            # Exponential Moving Average
+            elif feature.lower() == 'ema':
+
+                tempFeatures= ta.trend.ema_indicator(dataPD.close)
+
+                # Adding the feature
+                featuresPD['ema'] = tempFeatures
+
+            # Moving Average Convergence Divergence
+            elif feature.lower() == 'macd':
+
+                # note: having all 3 causes multicollinearity. Maybe not a problem in ML, let's see :-)
+                # macd is the difference between two EMAs
+                # macd_signal is an EMA of the above macd line
+                # macd_diff is the so-called histogram (just bars really) of the time-wise difference between macd and macd_signal
+
+                # Adding the features
+                featuresPD['macd'] = ta.trend.macd(dataPD.close)
+
+            # Moving Average Convergence Divergence Difference
+            elif feature.lower() == 'macd_diff':
+                # Adding the features
+                featuresPD['macd_diff'] = ta.trend.macd_diff(dataPD.close)
+
+            # Moving Average Convergence Divergence Signal
+            elif feature.lower() == 'macd_signal':
+                # Adding the features
+                featuresPD['macd_signal'] = ta.trend.macd_signal(dataPD.close)
+
+             # Disparity 5
+            elif feature.lower() == 'dis5':
+
+                tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,5))*100
+
+                # Adding the feature
+                featuresPD['dis5'] = tempFeatures
+
+            # Disparity 10
+            elif feature.lower() == 'dis10':
+
+                tempFeatures= (dataPD.close/ta.trend.sma_indicator(dataPD.close,10))*100
+
+                # Adding the feature
+                featuresPD['dis10'] = tempFeatures
+
+            # Bollinger Bands
+            elif feature.lower() == 'bb':
+
+                # Define Bollinger Bands function to extract from
+                bb_function = ta.volatility.BollingerBands(close=dataPD.close, n=20, ndev=2)
+
+                # Adding the features
+                featuresPD['bb_mavg'] = bb_function.bollinger_mavg()
+                featuresPD['bb_hband'] = bb_function.bollinger_hband()
+                featuresPD['bb_lband'] = bb_function.bollinger_lband()
+                featuresPD['bb_pband'] = bb_function.bollinger_pband()
+                featuresPD['bb_wband'] = bb_function.bollinger_wband()
+
+            # Sector return
+            # elif feature.lower() == 'sector':
+
+
+
+        # if we want any lags:
+        if feature_lags > 0:
+
+            # collect names of all raw features (before any lagging)
+            all_raw_features = featuresPD.columns
+
+            # loop through each lag and shift all features at once
+            for roll_i in np.arange(feature_lags + 1): # + 1 as we treat feature_lags = 1 as having both lag0 and lag1
+
+                # define new column name (feature_name_ + lagX) where X = roll_i is the shifting parameter
+                new_col_names = [feature_name + '_lag' + str(roll_i) for feature_name in all_raw_features]
+
+                # Shift/roll all raw features with the shifting parameter roll_i and save as new columns.
+                # The shift parameter must be negative (we want lag0 to be the 'newest'/'latest')
+                featuresPD[new_col_names] = featuresPD[all_raw_features].shift( - (feature_lags - roll_i))
+
+            # remove all raw features
+            featuresPD = featuresPD.loc[:, ~featuresPD.columns.isin(all_raw_features)]
+
+            # Adjust price feature
+        if 'pastobs' in listOfFeatures:
+            if feature_lags > 0:
+                priceCols = np.concatenate([[c for c in featuresPD.columns if c.startswith(t,0,len(t))] for t in ['open','high','low','close']])#[0:len(t)] == t
+                # print(priceCols)
+                tempClose = featuresPD.close_lag0.copy(deep=True)
+    #             print('\n')
+
+    #             featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols] - featuresPD.close_lag0
+                featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
+    #             print('\n')
+    #             print([featuresPD.loc[:,priceCols] - featuresPD.close_lag0][0:5])
+    #             print(tempClose)
+                featuresPD.loc[:,'close_lag0'] = tempClose
+            else:
+    #             tempClose = copy.deepcopy(featuresPD.close.values)
+                tempClose = featuresPD.close.copy(deep=True)
+
+    #             print(tempClose)
+    #             featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']] - featuresPD.close
+                featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
+    #             print('\n')
+    #             print(featuresPD.loc[:,['open','high','low','close']])
+    #             print(featuresPD.close)
+    #             print([featuresPD.loc[:,['open','high','low','close']] - featuresPD.close][0:5])
+                featuresPD.loc[:,'close'] = tempClose
+
+        featuresPD['ticker'] = ticker_name
+
+        # append
+        multi_features = pd.concat([multi_features, featuresPD])
+        # print(ticker_name + " done")
+
+    # Finally adding sector dummies if needed
+    # Sector Dummies
+    if 'sector' in [ele.lower() for ele in listOfFeatures]:
+
+        ## Adding Sector dummies
+        sectors = data.pop('sector')
+        multi_features = pd.concat([multi_features, pd.get_dummies(sectors
+                                                                , prefix='sector'
+                                                                , drop_first=False)]
+                                , axis=1)
+
     return multi_features
