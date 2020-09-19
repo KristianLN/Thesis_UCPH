@@ -2,7 +2,7 @@
 
 -- Restructure data correctly - Done
 -- Consider to add more features (sector return, market return, past labels)
-    -- !!! Only missing to reinclude the sector dummies!!!! - Done
+    -- !!! Only missing to reinclude the sector dummies!!!! - Done (past labels are excluded for now)
 -- Settle on NN model specifications
     -- number of layers,  (based on literature)
     -- number of neurons in each, (based on literature)

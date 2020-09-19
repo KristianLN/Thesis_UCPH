@@ -2730,6 +2730,8 @@ def generateFeatures_multi_v3(data,
 
     return multi_features
 
+# KLN: Included relative return calculations
+# FMNS: making relative sector return code compatible with Azure's reset_index (making level_0 == Column1, etc.)
 def generateFeatures_multi_v4(data,
                                  listOfFeatures=[],
                                  feature_lags=1,
@@ -2745,8 +2747,14 @@ def generateFeatures_multi_v4(data,
         # None
     if 'sector' in [ele.lower() for ele in listOfFeatures]:
 
-        table = pd.pivot_table(sectorETFS.reset_index()[['level_0','level_1','close','Ticker']],
+        # table = pd.pivot_table(sectorETFS.reset_index()[['level_0','level_1','close','Ticker']],
+        #                        index=['level_0','level_1'],columns='Ticker')
+        try:
+            table = pd.pivot_table(sectorETFS.reset_index()[['level_0','level_1','close','Ticker']],
                                index=['level_0','level_1'],columns='Ticker')
+        except:
+            table = pd.pivot_table(sectorETFS.reset_index()[['Column1', 'Column2','close','Ticker']],
+                               index=['Column1', 'Column2'],columns='Ticker')
         table.columns = table.columns.get_level_values(1)
 
         tempSector = pd.DataFrame(np.concatenate([np.array([0 for i in np.arange(table.shape[1])])\
@@ -3027,6 +3035,7 @@ def generateFeatures_multi_v4(data,
 
     return multi_features
 
+# This is v4
 def generateFeatures_multi_final(data,
                                  listOfFeatures=[],
                                  feature_lags=1,
@@ -3042,8 +3051,14 @@ def generateFeatures_multi_final(data,
         # None
     if 'sector' in [ele.lower() for ele in listOfFeatures]:
 
-        table = pd.pivot_table(sectorETFS.reset_index()[['level_0','level_1','close','Ticker']],
+        # table = pd.pivot_table(sectorETFS.reset_index()[['level_0','level_1','close','Ticker']],
+        #                        index=['level_0','level_1'],columns='Ticker')
+        try:
+            table = pd.pivot_table(sectorETFS.reset_index()[['level_0','level_1','close','Ticker']],
                                index=['level_0','level_1'],columns='Ticker')
+        except:
+            table = pd.pivot_table(sectorETFS.reset_index()[['Column1', 'Column2','close','Ticker']],
+                               index=['Column1', 'Column2'],columns='Ticker')
         table.columns = table.columns.get_level_values(1)
 
         tempSector = pd.DataFrame(np.concatenate([np.array([0 for i in np.arange(table.shape[1])])\
