@@ -3036,11 +3036,13 @@ def generateFeatures_multi_v4(data,
     return multi_features
 
 # Included intraday time and past returns as features
-def generateFeatures_multi_v5(data,
+# added option change between past obs in percentage or not.
+def generateFeatures_multi_final(data,
                                  listOfFeatures=[],
                                  feature_lags=1,
                                  #stockTable = None,
-                                 sectorETFS=None):
+                                 sectorETFS=None,
+                                 pastobs_in_percentage = False):
 
     # try:
     #if (stockTable is not None) & ('sector' not in data.columns.str.lower()):
@@ -3257,7 +3259,7 @@ def generateFeatures_multi_v5(data,
             elif feature.lower() == 'sector':
 #                 print(dataPD.shape)
                 returnPD = pd.DataFrame({'return':np.concatenate([[0],(((dataPD.close.values[1:]/\
-                                                             dataPD.close.values[0:-1]))-1)])},
+                                                                        dataPD.close.values[0:-1]))-1)])},
                                             index=dataPD.index).fillna(0)
 #                 print(returnPD.shape)
                 relativeReturns = pd.DataFrame(returnPD.values - tempSector.values,
@@ -3273,7 +3275,7 @@ def generateFeatures_multi_v5(data,
             elif feature.lower() == 'pastreturns':
 #                 print(dataPD.shape)
                 returnPD = pd.DataFrame({'return':np.concatenate([[0],(((dataPD.close.values[1:]/\
-                                                             dataPD.close.values[0:-1]))-1)])},
+                                                                        dataPD.close.values[0:-1]))-1)])},
                                             index=dataPD.index).fillna(0)
 
                 featuresPD.loc[:,'pastreturns'] = returnPD.values
@@ -3286,9 +3288,6 @@ def generateFeatures_multi_v5(data,
                 fullPeriodIntradayTime = np.tile(intradaytime.values,(nDays,1)).flatten()
 
                 featuresPD.loc[:,'intradaytime'] = fullPeriodIntradayTime
-
-
-
 
         # if we want any lags:
         if feature_lags > 0:
@@ -3318,7 +3317,11 @@ def generateFeatures_multi_v5(data,
     #             print('\n')
 
     #             featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols] - featuresPD.close_lag0
-                featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
+                # featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
+                if pastobs_in_percentage:
+                    featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].divide(featuresPD.close_lag0, axis=0)-1
+                else:
+                    featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
     #             print('\n')
     #             print([featuresPD.loc[:,priceCols] - featuresPD.close_lag0][0:5])
     #             print(tempClose)
@@ -3329,7 +3332,11 @@ def generateFeatures_multi_v5(data,
 
     #             print(tempClose)
     #             featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']] - featuresPD.close
-                featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
+                # featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
+                if pastobs_in_percentage:
+                    featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].divide(featuresPD.close, axis=0)-1
+                else:
+                    featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
     #             print('\n')
     #             print(featuresPD.loc[:,['open','high','low','close']])
     #             print(featuresPD.close)
@@ -3368,7 +3375,8 @@ def generateFeatures_multi_final(data,
                                  listOfFeatures=[],
                                  feature_lags=1,
                                  #stockTable = None,
-                                 sectorETFS=None):
+                                 sectorETFS=None,
+                                 pastobs_in_percentage = False):
 
     # try:
     #if (stockTable is not None) & ('sector' not in data.columns.str.lower()):
@@ -3441,7 +3449,8 @@ def generateFeatures_multi_final(data,
 
                 tempFeatures= ta.momentum.stoch(dataPD.high,
                                                 dataPD.low,
-                                                dataPD.close)
+                                                dataPD.close,
+                                                fillna=True)
 
                 # Adding the feature
                 featuresPD['stok'] = tempFeatures
@@ -3451,7 +3460,8 @@ def generateFeatures_multi_final(data,
 
                 tempFeatures= ta.momentum.stoch_signal(dataPD.high,
                                                        dataPD.low,
-                                                       dataPD.close)
+                                                       dataPD.close,
+                                                       fillna=True)
                 # Adding the feature
                 featuresPD['stod'] = tempFeatures
 
@@ -3460,7 +3470,8 @@ def generateFeatures_multi_final(data,
 
                 tempFeatures= ta.trend.sma_indicator(ta.momentum.stoch_signal(dataPD.high,
                                                                               dataPD.low,
-                                                                              dataPD.close))
+                                                                              dataPD.close,
+                                                                              fillna=True))
                 # Adding the feature
                 featuresPD['sstod'] = tempFeatures
 
@@ -3469,7 +3480,8 @@ def generateFeatures_multi_final(data,
 
                 tempFeatures= ta.momentum.wr(dataPD.high,
                                              dataPD.low,
-                                             dataPD.close)
+                                             dataPD.close,
+                                             fillna=True)
                 # Adding the feature
                 featuresPD['wilr'] = tempFeatures
 
@@ -3503,7 +3515,8 @@ def generateFeatures_multi_final(data,
 
                 tempFeatures= ta.trend.cci(dataPD.high,
                                            dataPD.low,
-                                           dataPD.close)
+                                           dataPD.close
+                                           ,fillna=True)
                 # Adding the feature
                 featuresPD['cci'] = tempFeatures
 
@@ -3644,7 +3657,10 @@ def generateFeatures_multi_final(data,
 
     #             featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols] - featuresPD.close_lag0
                 # featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
-                featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].divide(featuresPD.close_lag0, axis=0)-1
+                if pastobs_in_percentage:
+                    featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].divide(featuresPD.close_lag0, axis=0)-1
+                else:
+                    featuresPD.loc[:,priceCols] = featuresPD.loc[:,priceCols].subtract(featuresPD.close_lag0,axis=0)
     #             print('\n')
     #             print([featuresPD.loc[:,priceCols] - featuresPD.close_lag0][0:5])
     #             print(tempClose)
@@ -3656,7 +3672,10 @@ def generateFeatures_multi_final(data,
     #             print(tempClose)
     #             featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']] - featuresPD.close
                 # featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
-                featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].divide(featuresPD.close, axis=0)-1
+                if pastobs_in_percentage:
+                    featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].divide(featuresPD.close, axis=0)-1
+                else:
+                    featuresPD.loc[:,['open','high','low','close']] = featuresPD.loc[:,['open','high','low','close']].subtract(featuresPD.close,axis=0)
     #             print('\n')
     #             print(featuresPD.loc[:,['open','high','low','close']])
     #             print(featuresPD.close)

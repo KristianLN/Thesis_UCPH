@@ -1,9 +1,22 @@
+20-09-2020 - TO-DO:
+* Check L2 penalties
+* Make LR notebook
+* Extract from experiments
+* Get the code to run
+  * Errors that poped up
+    * Input contains infinity or a value too large for dtype('float64') - Occured in Pre-processing - Solved by passing "fillna=True" to CCI. - All pre-processing options checked afterwards
+    * Unable to allocate 2.45 GiB for an array with shape (960, 343200) and data type float64. - Occured in the model - Solved, for now, by removing the options of 256 neurons, 10 lags and 20 lags.
+    * Error when checking target: expected activation_1 to have 3 dimensions, but got array with shape (341385, 5) - Occured for some LSTM models..
+      Proposed solutions:
+        * https://github.com/keras-team/keras/issues/6351
+        * https://stackoverflow.com/questions/51763983/error-when-checking-target-expected-dense-1-to-have-3-dimensions-but-got-array
+
 13/09/2020 - TO-DO:
 
 -- Restructure data correctly - Done
 -- Consider to add more features (sector return, market return, past labels)
     -- !!! Only missing to reinclude the sector dummies!!!! - Done (past labels are excluded for now)
--- Settle on NN model specifications
+-- Settle on NN model specifications - Done
     -- number of layers,  (based on literature)
     -- number of neurons in each, (based on literature)
     -- loss function (conditional on type of network),
@@ -16,7 +29,7 @@
 -- XG Boost - secondary
 -- Add all three AUC types - Done
 -- Add option to specify split of labels. - done (Keras)
--- Shuffle each batch
+-- Shuffle each batch - Done
 
 
 

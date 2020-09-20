@@ -882,13 +882,13 @@ def align_features_and_labels_multi_v8(price_candles,
             returns[returns==0] = np.random.normal(0,1,sum(returns==0))/1000000
 
         tickers = np.concatenate(tickers)
-        
+
         if label_split == []:
             # equal-sized bins according to n_classes
             _, splits = pd.qcut(returns, q=n_classes, labels=False, retbins=True)
         elif label_split != []:
             _, splits = pd.qcut(returns, q=label_split, labels=False, retbins=True)
-            
+
         #print(splits)
 
         returns = pd.DataFrame({'returns': returns, 'Ticker': tickers})
@@ -920,7 +920,7 @@ def align_features_and_labels_multi_v8(price_candles,
             burned_in_features = ticker_features.iloc[burned_in_idx : -end_point_cut, :] #.reset_index(drop=True) # features[burned_in_idx:] latter is sligthly faster but maybe not as precise
             burned_in_indices = ticker_indices.iloc[burned_in_idx : -end_point_cut, :]
             # slice away the burned-in indices from labels
-            labels = extract_labels_multi_v6(data = ticker_returns[(burned_in_idx+n_feature_lags):],
+            labels = extract_labels_multi_final(data = ticker_returns[(burned_in_idx+n_feature_lags):],
                                                 classes = n_classes,
                                                 splits = splits)
             # labels, returns, thresholds = extract_labels(data = candles[burned_in_idx + n_feature_lags : , :],
@@ -998,13 +998,13 @@ def align_features_and_labels_multi_final(price_candles,
             returns[returns==0] = np.random.normal(0,1,sum(returns==0))/1000000
 
         tickers = np.concatenate(tickers)
-        
+
         if label_split == []:
             # equal-sized bins according to n_classes
             _, splits = pd.qcut(returns, q=n_classes, labels=False, retbins=True)
         elif label_split != []:
             _, splits = pd.qcut(returns, q=label_split, labels=False, retbins=True)
-            
+
         #print(splits)
 
         returns = pd.DataFrame({'returns': returns, 'Ticker': tickers})
@@ -1036,7 +1036,7 @@ def align_features_and_labels_multi_final(price_candles,
             burned_in_features = ticker_features.iloc[burned_in_idx : -end_point_cut, :] #.reset_index(drop=True) # features[burned_in_idx:] latter is sligthly faster but maybe not as precise
             burned_in_indices = ticker_indices.iloc[burned_in_idx : -end_point_cut, :]
             # slice away the burned-in indices from labels
-            labels = extract_labels_multi_v6(data = ticker_returns[(burned_in_idx+n_feature_lags):],
+            labels = extract_labels_multi_final(data = ticker_returns[(burned_in_idx+n_feature_lags):],
                                                 classes = n_classes,
                                                 splits = splits)
             # labels, returns, thresholds = extract_labels(data = candles[burned_in_idx + n_feature_lags : , :],
@@ -1676,7 +1676,7 @@ def pre_processing_v2(rawData_train,
 def pre_processing(rawData_train,
                 rawData_test,
                 ppDict,
-                subBy,
+                subBy=100,
                 verbose=False):
 
     # Creating empty lists to hold the content of our pre-processing dictonary
