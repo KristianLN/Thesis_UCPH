@@ -257,7 +257,7 @@ def align_features_and_labels(candles, prediction_horizon, features, n_feature_l
                               safe_burn_in = False, data_sample = 'full'):
 
     # extract first 4 columns as the lag0 or raw OHLC prices (used for labelling)
-    price_candles = candles.iloc[:, :4].values
+    price_candles = candles.iloc[:, :4].copy(deep=True).values
 
     if not safe_burn_in:
         assert data_sample == 'full'
