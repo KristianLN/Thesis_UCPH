@@ -1,4 +1,12 @@
 ########## To-Do #######################
+27-09-2020:
+* Historiefortæling
+    * Data
+    * Præsentation
+* Skriv email til Anders, angående møde.
+* Læs LR data
+* Backtest
+
 30-08-2020
 * Tilføj individuel preprocessing af tickers
 * Til mulighed for at håndtere stacked pre-proecssing.
