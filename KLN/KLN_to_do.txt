@@ -1,4 +1,23 @@
 ########## To-Do #######################
+10-10-2020:
+* Få max_positions til at virke:
+    Ranger efter sandsynlighed.
+    * Første gange:
+      * hvis antallet af åbne positioner (både short og long) er større en maks:
+        * Tjek om antallet for enten long/short er mindre end halvdelen af maks:
+          * Hvis det er tilfældet, så åben de mulige for den hvor der er mindre positioner end tiltænkt, og læg overskuet over i den anden.
+          * Ellers åben havldelen af maks for både long/short.
+
+    * Alle andre gange:
+      * Check confidence i eksisterende og nye positioner, og vælg de mest "sikre" positioner
+        *: NYT: Du kan ryge ud hvis du ikke er blandt de mest sikre positioner.
+
+* Implementer simple stop-loss/profit_goal
+* Implementer budget
+
+Observationser:
+* Vi ligger pt og shopper ret meget ind og ud - kunne være værd at overveje en "freeze" periode.
+
 03-10-2020-04-10-2020:
 * (1): Mail til Anders
 * (2): Præsentation
