@@ -3304,6 +3304,8 @@ def generateFeatures_multi_final(data,
                 # Shift/roll all raw features with the shifting parameter roll_i and save as new columns.
                 # The shift parameter must be negative (we want lag0 to be the 'newest'/'latest')
                 featuresPD[new_col_names] = featuresPD[all_raw_features].shift( - (feature_lags - roll_i))
+                ## New
+                featuresPD.index = featuresPD.index.shift( - (feature_lags - roll_i))
 
             # remove all raw features
             featuresPD = featuresPD.loc[:, ~featuresPD.columns.isin(all_raw_features)]
@@ -3644,6 +3646,8 @@ def generateFeatures_multi_final(data,
                 # The shift parameter must be negative (we want lag0 to be the 'newest'/'latest')
                 featuresPD[new_col_names] = featuresPD[all_raw_features].shift( - (feature_lags - roll_i))
 
+                if roll_i > 0:
+                    featuresPD.index = pd.MultiIndex.from_arrays([pd.Series(featuresPD.index.get_level_values(0)).shift(-1),pd.Series(featuresPD.index.get_level_values(1)).shift(-1)])
             # remove all raw features
             featuresPD = featuresPD.loc[:, ~featuresPD.columns.isin(all_raw_features)]
 
