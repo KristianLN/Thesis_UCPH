@@ -1,4 +1,12 @@
+########## Emner der kunne nævnes/uddybes ##############
+* Skriv mere om den empiriske og forventede fejlrate.
+* AMSGrad som alternativ til ADAN (i lyset af den kritik som ADAM møder af Reddi et al., 2018)
+* Lav en figur over vores "økosystem", eventuelt til introduktionen.
+
 ########## To-Do #######################
+27-10-2020:
+
+
 10-10-2020:
 * Få max_positions til at virke:
     Ranger efter sandsynlighed.
