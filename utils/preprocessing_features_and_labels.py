@@ -1079,6 +1079,8 @@ def align_features_and_labels_multi_v9(price_candles,
             all_labels.reset_index(drop=True),\
             all_burned_in_indices.reset_index(drop=True)
 
+## Correct wrong indices alignment, by shifting price_candles n_feature_lags back.
+## Added only printing at the end, when all tickers has been processed.
 def align_features_and_labels_multi_v10(price_candles,
                                             all_features,
                                             prediction_horizon,
@@ -1139,7 +1141,7 @@ def align_features_and_labels_multi_v10(price_candles,
 
     for ticker_iter, ticker_name in enumerate(all_features.ticker.unique()):
         ticker_features = all_features[all_features.ticker==ticker_name].copy(deep=True)
-        ticker_indices = dailyIndices[dailyIndices.ticker==ticker_name].copy(deep=True)
+        ticker_indices = dailyIndices[dailyIndices.ticker==ticker_name].copy(deep=True).shift(-n_feature_lags)
         # removing the "ticker" variable from ticker_features as np.isnan() does not like non-numericals
         #ticker_features = ticker_features.iloc[:, ticker_features.columns != 'ticker']
         ticker_features.drop('ticker', axis=1, inplace=True)
@@ -1180,8 +1182,8 @@ def align_features_and_labels_multi_v10(price_candles,
         all_burned_in_features = pd.concat([all_burned_in_features, burned_in_features.reset_index(drop=True)])
         all_burned_in_indices = pd.concat([all_burned_in_indices, burned_in_indices.reset_index(drop=True)])
         all_labels = pd.concat([all_labels, pd.Series(labels)])
-        print(ticker_name + " done")
-
+        # print(ticker_name + " done")
+    print("All tickers processed.")
     # Returning the ticker as dummies
     if ticker_dummies:
 
